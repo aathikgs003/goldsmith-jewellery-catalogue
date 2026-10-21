@@ -5,7 +5,7 @@
 
 export const siteConfig = {
   // ----- Branding -----
-  name: 'Sri Lakshmi Gold Works',
+  name: 'Lakshmanan Gold Works',
   tagline: 'Timeless Gold. Beautifully Crafted.',
   description:
     'Discover exquisite handcrafted gold jewellery for every occasion. Traditional artistry meets modern elegance.',
@@ -31,7 +31,7 @@ export const siteConfig = {
   },
 
   // ----- SEO / Meta -----
-  siteUrl: 'https://srilakshmigoldworks.com',
+  siteUrl: 'https://lakshmanangoldworks.com',
 
   // ----- WhatsApp message template -----
   whatsappMessageTemplate:

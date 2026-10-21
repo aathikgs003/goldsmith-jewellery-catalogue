@@ -81,11 +81,11 @@ const INITIAL_CONTENT = {
   },
   about: {
     eyebrow: 'TRADITION · CRAFTSMANSHIP · PURITY',
-    title: 'The Story Behind Sri Lakshmi Gold Works',
+    title: 'The Story Behind Lakshmanan Gold Works',
     subtitle: 'Crafting timeless gold jewellery with passion, precision, and heritage since decades.',
     storyTitle: 'Crafted with Tradition, Inspired by You',
     storyText1:
-      'At Sri Lakshmi Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration. Founded with a vision to preserve the authentic goldsmithing traditions of South India, we have been crafting bespoke gold jewellery for generations.',
+      'At Lakshmanan Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration. Founded with a vision to preserve the authentic goldsmithing traditions of South India, we have been crafting bespoke gold jewellery for generations.',
     storyText2:
       'From our atelier in Ullal, Mangalore, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms tailored to your family celebrations.',
     storyImage: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000&q=80',
@@ -128,7 +128,7 @@ const INITIAL_CONTENT = {
     step4Title: 'Hallmarked Delivery',
     step4Desc: 'Certified 916 hallmarked gold, perfectly packaged and ready for your occasion.',
     whatsappPrompt:
-      'Namaste Sri Lakshmi Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
+      'Namaste Lakshmanan Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
   },
 }
 
@@ -300,7 +300,11 @@ export function AdminProvider({ children }) {
   const [websiteContent, setWebsiteContent] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_content')
-      return saved ? JSON.parse(saved) : INITIAL_CONTENT
+      if (saved) {
+        const migrated = saved.replaceAll('Sri Lakshmi', 'Lakshmanan')
+        return JSON.parse(migrated)
+      }
+      return INITIAL_CONTENT
     } catch {
       return INITIAL_CONTENT
     }
@@ -327,17 +331,19 @@ export function AdminProvider({ children }) {
   const [storeDetails, setStoreDetails] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_store_details')
-      return saved
-        ? JSON.parse(saved)
-        : {
-            name: initialSiteConfig.name,
-            address: initialSiteConfig.address,
-            phone: initialSiteConfig.phone,
-            whatsapp: initialSiteConfig.whatsapp,
-            email: initialSiteConfig.email,
-            hours: 'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM',
-            mapUrl: initialSiteConfig.mapUrl,
-          }
+      if (saved) {
+        const migrated = saved.replaceAll('Sri Lakshmi', 'Lakshmanan')
+        return JSON.parse(migrated)
+      }
+      return {
+        name: initialSiteConfig.name,
+        address: initialSiteConfig.address,
+        phone: initialSiteConfig.phone,
+        whatsapp: initialSiteConfig.whatsapp,
+        email: initialSiteConfig.email,
+        hours: 'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM',
+        mapUrl: initialSiteConfig.mapUrl,
+      }
     } catch {
       return {
         name: initialSiteConfig.name,

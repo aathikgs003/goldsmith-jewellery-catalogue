@@ -60,7 +60,7 @@ export default function About() {
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#30231F] leading-[1.08]"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                {about.title || 'About Sri Lakshmi Gold Works'}
+                {about.title || 'About Lakshmanan Gold Works'}
               </h1>
 
               {/* Subtitle */}
@@ -165,7 +165,7 @@ export default function About() {
             <div className="space-y-4 text-xs sm:text-sm text-[#786D63] font-light leading-relaxed">
               <p>
                 {about.storyText1 ||
-                  'Sri Lakshmi Gold Works is built on a deep appreciation for traditional craftsmanship and a passion for creating beautiful jewellery designs for every occasion.'}
+                  'Lakshmanan Gold Works is built on a deep appreciation for traditional craftsmanship and a passion for creating beautiful jewellery designs for every occasion.'}
               </p>
               <p>
                 {about.storyText2 ||
@@ -420,7 +420,7 @@ export default function About() {
             <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-[#F5EBDD] border border-[#D8B36A]/40 shadow-lg">
               <img
                 src={about.showroomImage || 'https://images.unsplash.com/photo-1582037928769-181f2644ecb7?w=900&q=85'}
-                alt="Sri Lakshmi Gold Works Showroom Interior"
+                alt="Lakshmanan Gold Works Showroom Interior"
                 className="w-full h-full object-cover"
               />
             </div>

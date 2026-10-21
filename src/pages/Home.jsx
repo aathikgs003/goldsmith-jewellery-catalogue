@@ -94,7 +94,7 @@ export default function Home() {
         <div className="absolute inset-y-0 right-0 w-full lg:w-[62%] h-full z-0">
           <img
             src={heroData.image}
-            alt="Sri Lakshmi Gold Works Hero Banner"
+            alt="Lakshmanan Gold Works Hero Banner"
             fetchpriority="high"
             className="w-full h-full object-cover object-center brightness-95"
           />
@@ -528,7 +528,7 @@ export default function Home() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 7. WHY CHOOSE SRI LAKSHMI GOLD WORKS */}
+      {/* 7. WHY CHOOSE LAKSHMANAN GOLD WORKS */}
       {/* ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 text-center">
         <div className="inline-flex items-center gap-3 justify-center mb-10 flex-wrap">
@@ -536,7 +536,7 @@ export default function Home() {
             className="text-2xl sm:text-3xl font-bold text-[#30231F] tracking-tight"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            Why Choose Sri Lakshmi Gold Works
+            Why Choose Lakshmanan Gold Works
           </h2>
           <SectionOrnament />
         </div>
@@ -724,7 +724,7 @@ export default function Home() {
               <div className="relative aspect-[16/10] overflow-hidden bg-[#240B12]">
                 <img
                   src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80"
-                  alt="Interior of Sri Lakshmi Gold Works Showroom"
+                  alt="Interior of Lakshmanan Gold Works Showroom"
                   loading="lazy"
                   className="w-full h-full object-cover"
                 />

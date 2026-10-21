@@ -34,7 +34,7 @@ export default function AdminLogout() {
             You have been logged out
           </h2>
           <p className="text-xs text-[#786D63] mt-1.5">
-            Your session has safely ended. Thank you for managing Sri Lakshmi Gold Works.
+            Your session has safely ended. Thank you for managing Lakshmanan Gold Works.
           </p>
         </div>
 

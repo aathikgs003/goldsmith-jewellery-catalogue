@@ -10,7 +10,7 @@ import { getCategoryBySlug } from '../data/categories'
 import { buildProductUrl, buildWhatsAppUrl } from '../config/siteConfig'
 
 const FALLBACK_IMAGE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23F0E4D0'/%3E%3Ccircle cx='300' cy='280' r='90' fill='none' stroke='%23B68A3A' stroke-width='2' stroke-dasharray='5 5' opacity='0.7'/%3E%3Ctext x='300' y='410' text-anchor='middle' font-family='Georgia,serif' font-size='20' fill='%2325211D' font-weight='600'%3ESri Lakshmi Gold Works%3C/text%3E%3Ctext x='300' y='440' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236B6560'%3EImage Preview%3C/text%3E%3C/svg%3E"
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23F0E4D0'/%3E%3Ccircle cx='300' cy='280' r='90' fill='none' stroke='%23B68A3A' stroke-width='2' stroke-dasharray='5 5' opacity='0.7'/%3E%3Ctext x='300' y='410' text-anchor='middle' font-family='Georgia,serif' font-size='20' fill='%2325211D' font-weight='600'%3ELakshmanan Gold Works%3C/text%3E%3Ctext x='300' y='440' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236B6560'%3EImage Preview%3C/text%3E%3C/svg%3E"
 
 export default function ProductDetails() {
   const { id } = useParams()
@@ -83,7 +83,7 @@ export default function ProductDetails() {
       try {
         await navigator.share({
           title: `${product.name} — ${product.id}`,
-          text: `Check out this jewellery design from Sri Lakshmi Gold Works: ${product.name}`,
+          text: `Check out this jewellery design from Lakshmanan Gold Works: ${product.name}`,
           url,
         })
       } catch {

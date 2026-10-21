@@ -7,7 +7,7 @@ import { buildWhatsAppUrl, buildProductUrl } from '../config/siteConfig'
 const LONG_PRESS_DELAY = 550 // ms
 
 const FALLBACK_IMAGE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Crect width='500' height='500' fill='%23F5EBDD'/%3E%3Ccircle cx='250' cy='230' r='70' fill='none' stroke='%23C4933D' stroke-width='2' stroke-dasharray='4 4' opacity='0.7'/%3E%3Ctext x='250' y='340' text-anchor='middle' font-family='Georgia,serif' font-size='16' fill='%2330231F' font-weight='500'%3ESri Lakshmi Gold Works%3C/text%3E%3C/svg%3E"
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Crect width='500' height='500' fill='%23F5EBDD'/%3E%3Ccircle cx='250' cy='230' r='70' fill='none' stroke='%23C4933D' stroke-width='2' stroke-dasharray='4 4' opacity='0.7'/%3E%3Ctext x='250' y='340' text-anchor='middle' font-family='Georgia,serif' font-size='16' fill='%2330231F' font-weight='500'%3ELakshmanan Gold Works%3C/text%3E%3C/svg%3E"
 
 export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFav }) {
   const [shareMenuOpen, setShareMenuOpen] = useState(false)

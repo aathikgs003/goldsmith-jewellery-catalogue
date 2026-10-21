@@ -73,14 +73,14 @@ export default function AdminContent() {
   // ─── 2. About Form ───
   const [aboutForm, setAboutForm] = useState({
     eyebrow: websiteContent.about?.eyebrow || 'TRADITION · CRAFTSMANSHIP · PURITY',
-    title: websiteContent.about?.title || 'The Story Behind Sri Lakshmi Gold Works',
+    title: websiteContent.about?.title || 'The Story Behind Lakshmanan Gold Works',
     subtitle:
       websiteContent.about?.subtitle ||
       'Crafting timeless gold jewellery with passion, precision, and heritage since decades.',
     storyTitle: websiteContent.about?.storyTitle || 'Crafted with Tradition, Inspired by You',
     storyText1:
       websiteContent.about?.storyText1 ||
-      'At Sri Lakshmi Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration.',
+      'At Lakshmanan Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration.',
     storyText2:
       websiteContent.about?.storyText2 ||
       'From our atelier in Ullal, Mangalore, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms.',
@@ -153,7 +153,7 @@ export default function AdminContent() {
       'Certified 916 hallmarked gold, perfectly packaged and ready for your occasion.',
     whatsappPrompt:
       websiteContent.customDesign?.whatsappPrompt ||
-      'Namaste Sri Lakshmi Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
+      'Namaste Lakshmanan Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
   })
 
   const showToast = (msg) => {
@@ -207,6 +207,72 @@ export default function AdminContent() {
       const reader = new FileReader()
       reader.onloadend = () => {
         setHeroForm((prev) => ({ ...prev, image: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleNewArrivalsFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setHomeNewArrivalsForm((prev) => ({ ...prev, image: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCustomFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setHomeCustomForm((prev) => ({ ...prev, image: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCraftFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setHomeCraftForm((prev) => ({ ...prev, image: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleAboutStoryFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAboutForm((prev) => ({ ...prev, storyImage: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleAboutShowroomFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAboutForm((prev) => ({ ...prev, showroomImage: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCustomDesignBannerFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setCustomForm((prev) => ({ ...prev, image: reader.result }))
       }
       reader.readAsDataURL(file)
     }
@@ -492,8 +558,20 @@ export default function AdminContent() {
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider">
                   Banner Image
                 </label>
-                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-[#240B12] border border-[#D8B36A]/40">
+                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-[#240B12] border border-[#D8B36A]/40 relative group">
                   <img src={homeNewArrivalsForm.image} alt="New Arrivals Banner" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-[#30231F]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="inline-flex items-center gap-2 bg-white text-[#30231F] px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shadow-lg hover:bg-[#F5EBDD] transition-colors">
+                      <UploadCloud size={16} className="text-[#C4933D]" />
+                      <span>Upload New Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleNewArrivalsFileUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
                 <input
                   type="url"
@@ -566,8 +644,20 @@ export default function AdminContent() {
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider">
                   Goldsmith Sketch Image
                 </label>
-                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-white border border-[#D8B36A]/40">
+                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-white border border-[#D8B36A]/40 relative group">
                   <img src={homeCustomForm.image} alt="Custom Banner" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-[#30231F]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="inline-flex items-center gap-2 bg-white text-[#30231F] px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shadow-lg hover:bg-[#F5EBDD] transition-colors">
+                      <UploadCloud size={16} className="text-[#C4933D]" />
+                      <span>Upload New Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleCustomFileUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
                 <input
                   type="url"
@@ -640,8 +730,20 @@ export default function AdminContent() {
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider">
                   Goldsmith At Work Photograph
                 </label>
-                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-[#1A110D] border border-[#D8B36A]/40">
+                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-[#1A110D] border border-[#D8B36A]/40 relative group">
                   <img src={homeCraftForm.image} alt="Craftsmanship" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-[#30231F]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="inline-flex items-center gap-2 bg-white text-[#30231F] px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shadow-lg hover:bg-[#F5EBDD] transition-colors">
+                      <UploadCloud size={16} className="text-[#C4933D]" />
+                      <span>Upload New Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleCraftFileUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
                 <input
                   type="url"
@@ -759,12 +861,28 @@ export default function AdminContent() {
                 />
               </div>
             </div>
-            <div>
+            <div className="space-y-2">
               <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                Story Image URL
+                Story Image
               </label>
+              <div className="w-full max-w-sm aspect-4/3 rounded-xl overflow-hidden bg-[#25211D] border border-[#D8B36A]/40 relative group">
+                <img src={aboutForm.storyImage} alt="Story Preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-[#30231F]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <label className="inline-flex items-center gap-2 bg-white text-[#30231F] px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shadow-lg hover:bg-[#F5EBDD] transition-colors">
+                    <UploadCloud size={16} className="text-[#C4933D]" />
+                    <span>Upload New Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAboutStoryFileUpload}
+                    />
+                  </label>
+                </div>
+              </div>
               <input
                 type="url"
+                placeholder="Story Image URL"
                 value={aboutForm.storyImage}
                 onChange={(e) => setAboutForm({ ...aboutForm, storyImage: e.target.value })}
                 className="w-full px-3.5 py-2 rounded-lg border border-[#D8B36A]/50 text-xs focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
@@ -789,15 +907,31 @@ export default function AdminContent() {
                   className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                  Showroom Image URL
+                  Showroom Image
                 </label>
+                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-[#F5EBDD] border border-[#D8B36A]/40 relative group">
+                  <img src={aboutForm.showroomImage} alt="Showroom Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-[#30231F]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="inline-flex items-center gap-2 bg-white text-[#30231F] px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shadow-lg hover:bg-[#F5EBDD] transition-colors">
+                      <UploadCloud size={16} className="text-[#C4933D]" />
+                      <span>Upload New Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAboutShowroomFileUpload}
+                      />
+                    </label>
+                  </div>
+                </div>
                 <input
                   type="url"
+                  placeholder="Showroom Image URL"
                   value={aboutForm.showroomImage}
                   onChange={(e) => setAboutForm({ ...aboutForm, showroomImage: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
+                  className="w-full px-3.5 py-2 rounded-lg border border-[#D8B36A]/50 text-xs focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
             </div>
@@ -1060,15 +1194,31 @@ export default function AdminContent() {
                   className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                  Workshop Image URL
+                  Workshop Image
                 </label>
+                <div className="w-full aspect-16/10 rounded-xl overflow-hidden bg-white border border-[#D8B36A]/40 relative group">
+                  <img src={customForm.image} alt="Custom Workshop Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-[#30231F]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="inline-flex items-center gap-2 bg-white text-[#30231F] px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shadow-lg hover:bg-[#F5EBDD] transition-colors">
+                      <UploadCloud size={16} className="text-[#C4933D]" />
+                      <span>Upload New Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleCustomDesignBannerFileUpload}
+                      />
+                    </label>
+                  </div>
+                </div>
                 <input
                   type="url"
+                  placeholder="Workshop Image URL"
                   value={customForm.image}
                   onChange={(e) => setCustomForm({ ...customForm, image: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
+                  className="w-full px-3.5 py-2 rounded-lg border border-[#D8B36A]/50 text-xs focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
             </div>

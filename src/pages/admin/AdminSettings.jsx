@@ -17,13 +17,13 @@ export default function AdminSettings() {
   const { storeDetails, updateStoreDetails } = useAdmin()
 
   const [formData, setFormData] = useState({
-    name: storeDetails.name || 'Sri Lakshmi Gold Works',
+    name: storeDetails.name || 'Lakshmanan Gold Works',
     address:
       storeDetails.address ||
       'Shop No. 12, Main Bazaar Road, Near Old Bus Stand, Ullal Main Road, Mangalore, Karnataka 575020',
     phone: storeDetails.phone || '+91 98451 23456',
     whatsapp: storeDetails.whatsapp || '+91 98451 23456',
-    email: storeDetails.email || 'contact@srilakshmigoldworks.com',
+    email: storeDetails.email || 'contact@lakshmanangoldworks.com',
     hours:
       storeDetails.hours ||
       'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM',

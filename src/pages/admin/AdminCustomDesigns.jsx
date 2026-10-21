@@ -79,7 +79,7 @@ export default function AdminCustomDesigns() {
               {customEnquiries.map((enq) => {
                 const cleanPhone = enq.contact?.replace(/[^0-9]/g, '')
                 const waUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(
-                  `Namaste ${enq.name}, we received your custom jewellery request at Sri Lakshmi Gold Works. Let's discuss your design specification!`
+                  `Namaste ${enq.name}, we received your custom jewellery request at Lakshmanan Gold Works. Let's discuss your design specification!`
                 )}`
 
                 return (

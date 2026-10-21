@@ -278,7 +278,7 @@ export default function Contact() {
                 <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                   <a
                     href={`https://wa.me/${(store.whatsapp || siteConfig.whatsapp).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                      `Namaste Sri Lakshmi Gold Works, I submitted an enquiry (ID: ${enquiryId}) for ${formData.category}. Looking forward to connecting!`
+                      `Namaste Lakshmanan Gold Works, I submitted an enquiry (ID: ${enquiryId}) for ${formData.category}. Looking forward to connecting!`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -472,7 +472,7 @@ export default function Contact() {
                   className="font-bold text-base text-[#30231F]"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  Sri Lakshmi Gold Works
+                  {store.name || 'Lakshmanan Gold Works'}
                 </h4>
                 <p className="text-xs text-[#786D63] leading-relaxed">
                   {store.address}

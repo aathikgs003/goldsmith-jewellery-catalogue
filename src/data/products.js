@@ -1,5 +1,5 @@
 /**
- * Sample product data for Sri Lakshmi Gold Works catalogue.
+ * Sample product data for Lakshmanan Gold Works catalogue.
  * All image URLs verified 200 OK and category-appropriate.
  */
 

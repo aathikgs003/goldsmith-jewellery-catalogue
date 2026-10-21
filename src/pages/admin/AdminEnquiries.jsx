@@ -151,7 +151,7 @@ export default function AdminEnquiries() {
                 const isPending = enq.status === 'Pending'
                 const cleanPhone = enq.contact?.replace(/[^0-9]/g, '')
                 const waUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(
-                  `Namaste ${enq.name}, thank you for contacting Sri Lakshmi Gold Works regarding ${enq.design || 'jewellery'}. How can we assist you today?`
+                  `Namaste ${enq.name}, thank you for contacting Lakshmanan Gold Works regarding ${enq.design || 'jewellery'}. How can we assist you today?`
                 )}`
 
                 return (
