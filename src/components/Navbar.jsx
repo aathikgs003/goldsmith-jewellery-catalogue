@@ -1,15 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Search,
   X,
   Menu,
   MessageCircle,
-  ChevronDown,
   Heart,
   MapPin,
   ChevronRight,
-  ArrowRight,
 } from 'lucide-react'
 import { InstagramIcon, FacebookIcon } from './SocialIcons'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -19,33 +17,33 @@ import { useAdmin } from '../context/AdminContext'
 import BrandLogo from './BrandLogo'
 import { useFavourites } from '../hooks/useProducts'
 
-const NAV_LINKS = [
-  { to: '/', label: 'Home', exact: true },
-  { to: '/collections', label: 'Collections', hasMega: true },
-  { to: '/new-arrivals', label: 'New Arrivals' },
-  { to: '/about', label: 'About Us' },
-  { to: '/contact', label: 'Contact' },
-]
+// Short display label helper so individual category links fit cleanly on all desktop screens
+function getShortLabel(name) {
+  if (!name) return ''
+  const lower = name.toLowerCase().trim()
+  if (lower === 'bridal jewellery') return 'Bridal'
+  if (lower === "children's jewellery") return "Children's"
+  if (lower === 'custom designs') return 'Custom'
+  return name
+}
 
 export default function Navbar() {
   const adminCtx = useAdmin()
-  const categories = adminCtx?.categories || initialCategories
+  const rawCategories = adminCtx?.categories || initialCategories
+  const categories = rawCategories.filter((c) => (c.status ? c.status === 'Active' : true))
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [collectionsMegaOpen, setCollectionsMegaOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { favs } = useFavourites()
   const navigate = useNavigate()
   const location = useLocation()
-  const megaMenuTimeout = useRef(null)
 
-  // Track route changes to close mobile sidebar
+  // Close mobile sidebar on route change
   const [prevPath, setPrevPath] = useState(location.pathname)
   if (location.pathname !== prevPath) {
     setPrevPath(location.pathname)
     setSidebarOpen(false)
-    setCollectionsMegaOpen(false)
   }
 
   // Shadow on scroll
@@ -72,18 +70,23 @@ export default function Navbar() {
     }
   }
 
-  const handleMouseEnterMega = () => {
-    clearTimeout(megaMenuTimeout.current)
-    setCollectionsMegaOpen(true)
-  }
-
-  const handleMouseLeaveMega = () => {
-    megaMenuTimeout.current = setTimeout(() => {
-      setCollectionsMegaOpen(false)
-    }, 150)
-  }
-
   const waUrl = `https://wa.me/${siteConfig.whatsapp}`
+
+  // Build the complete flat navigation item list:
+  // Home -> All Jewellery -> Direct category links -> New Arrivals -> About Us -> Contact
+  const desktopNavItems = [
+    { to: '/', label: 'Home', exact: true },
+    { to: '/collections', label: 'All', exact: true, title: 'All Jewellery Collections' },
+    ...categories.map((cat) => ({
+      to: `/collections/${cat.slug}`,
+      label: getShortLabel(cat.name),
+      fullName: cat.name,
+      slug: cat.slug,
+    })),
+    { to: '/new-arrivals', label: 'New Arrivals' },
+    { to: '/about', label: 'About Us' },
+    { to: '/contact', label: 'Contact' },
+  ]
 
   return (
     <>
@@ -147,10 +150,10 @@ export default function Navbar() {
           scrolled ? 'shadow-md shadow-[#30231F]/5' : ''
         }`}
       >
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="flex items-center justify-between h-18 lg:h-20 gap-4">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-18 lg:h-20 gap-3 xl:gap-4">
             {/* Left: Mobile hamburger & Brand Logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <button
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Open navigation sidebar"
@@ -162,119 +165,45 @@ export default function Navbar() {
               <BrandLogo />
             </div>
 
-            {/* Center Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-2" aria-label="Main navigation">
-              {NAV_LINKS.map(({ to, label, exact, hasMega }) =>
-                hasMega ? (
-                  <div
-                    key={to}
-                    className="relative"
-                    onMouseEnter={handleMouseEnterMega}
-                    onMouseLeave={handleMouseLeaveMega}
-                  >
-                    <button
-                      onClick={() => navigate('/collections')}
-                      className="flex items-center gap-1 px-3.5 py-2 text-sm font-medium text-[#30231F] hover:text-[#C4933D] transition-colors rounded-lg tracking-wide"
-                    >
-                      {label}
-                      <ChevronDown
-                        size={14}
-                        className={`text-[#C4933D] transition-transform duration-200 ${
-                          collectionsMegaOpen ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </button>
-
-                    {/* Mega Menu Dropdown */}
-                    <AnimatePresence>
-                      {collectionsMegaOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 8 }}
-                          transition={{ duration: 0.18 }}
-                          className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 pointer-events-auto"
-                        >
-                          <div className="w-[660px] bg-white border border-[#D8B36A]/50 rounded-2xl shadow-2xl p-6">
-                            <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#F5EBDD]">
-                              <div>
-                                <h4 className="text-xs uppercase tracking-[0.2em] font-bold text-[#C4933D]">
-                                  Browse Collections
-                                </h4>
-                                <p className="text-xs text-[#786D63] mt-0.5 font-light">
-                                  Traditional South Indian gold jewellery crafted for all celebrations
-                                </p>
-                              </div>
-                              <Link
-                                to="/collections"
-                                onClick={() => setCollectionsMegaOpen(false)}
-                                className="text-xs text-[#351016] font-semibold hover:text-[#C4933D] flex items-center gap-1 transition-colors"
-                              >
-                                View All <ArrowRight size={12} />
-                              </Link>
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-3">
-                              {categories.map((cat) => (
-                                <Link
-                                  key={cat.slug}
-                                  to={`/collections/${cat.slug}`}
-                                  onClick={() => setCollectionsMegaOpen(false)}
-                                  className="group/item flex flex-col items-center p-2 rounded-xl hover:bg-[#FFFCF7] transition-colors"
-                                >
-                                  <div className="w-full aspect-square rounded-xl overflow-hidden bg-[#F5EBDD] mb-2 border border-[#D8B36A]/30">
-                                    <img
-                                      src={cat.image}
-                                      alt={cat.name}
-                                      loading="lazy"
-                                      className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300"
-                                    />
-                                  </div>
-                                  <span className="text-xs font-semibold text-[#30231F] group-hover/item:text-[#C4933D] text-center leading-tight transition-colors">
-                                    {cat.name}
-                                  </span>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        </motion.div>
+            {/* Center Navigation: Direct links to ALL categories and main pages */}
+            <nav
+              className="hidden lg:flex items-center gap-0.5 xl:gap-1 2xl:gap-1.5 flex-1 justify-center min-w-0 overflow-x-auto no-scrollbar py-1"
+              aria-label="Main navigation"
+            >
+              {desktopNavItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.exact}
+                  title={item.fullName || item.title || item.label}
+                  className={({ isActive }) =>
+                    `relative flex-shrink-0 px-2 xl:px-2.5 2xl:px-3 py-2 text-xs xl:text-[13px] 2xl:text-sm font-medium tracking-wide transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'text-[#30231F] font-semibold'
+                        : 'text-[#30231F] hover:text-[#C4933D]'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span>{item.label}</span>
+                      {isActive && (
+                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-[2.5px] bg-[#C4933D] rounded-full" />
                       )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end={exact}
-                    className={({ isActive }) =>
-                      `relative px-3.5 py-2 text-sm font-medium tracking-wide transition-colors ${
-                        isActive
-                          ? 'text-[#30231F] font-semibold'
-                          : 'text-[#30231F] hover:text-[#C4933D]'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span>{label}</span>
-                        {isActive && (
-                          <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-[2.5px] bg-[#C4933D] rounded-full" />
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ),
-              )}
+                    </>
+                  )}
+                </NavLink>
+              ))}
             </nav>
 
             {/* Right: Search Capsule, Wishlist, WhatsApp Button */}
-            <div className="flex items-center gap-3">
-              {/* Search Capsule Input with dual magnifying glass style */}
+            <div className="flex items-center gap-2 xl:gap-3 flex-shrink-0">
+              {/* Search Capsule Input */}
               <form
                 onSubmit={handleSearchSubmit}
-                className="hidden md:flex items-center justify-between gap-2 bg-[#FFFCF7] border border-[#D8B36A]/50 rounded-full px-3.5 py-1.5 focus-within:border-[#C4933D] transition-colors w-48 lg:w-60 shadow-xs"
+                className="hidden md:flex items-center justify-between gap-2 bg-[#FFFCF7] border border-[#D8B36A]/50 rounded-full px-3 py-1.5 focus-within:border-[#C4933D] transition-all duration-200 w-36 lg:w-40 xl:w-52 shadow-xs flex-shrink-0"
               >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <Search size={14} className="text-[#786D63] flex-shrink-0" />
                   <input
                     type="search"
@@ -297,7 +226,7 @@ export default function Navbar() {
               <Link
                 to="/collections"
                 aria-label="View favourites"
-                className="relative p-2 text-[#30231F] hover:text-[#C4933D] transition-colors"
+                className="relative p-2 text-[#30231F] hover:text-[#C4933D] transition-colors flex-shrink-0"
               >
                 <Heart size={20} className="stroke-[1.6]" />
                 {favs.length > 0 && (
@@ -313,7 +242,7 @@ export default function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Contact on WhatsApp"
-                className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white text-xs font-semibold px-4 sm:px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow"
+                className="inline-flex items-center gap-1.5 sm:gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white text-xs font-semibold px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full transition-all shadow-sm hover:shadow flex-shrink-0"
               >
                 <MessageCircle size={15} />
                 <span>WhatsApp</span>
@@ -376,45 +305,110 @@ export default function Navbar() {
                 </form>
               </div>
 
-              {/* Mobile Navigation Links */}
-              <nav className="p-4 space-y-1">
-                {NAV_LINKS.map(({ to, label, exact }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end={exact}
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      `block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
-                          : 'text-[#30231F] hover:bg-[#F5EBDD]'
-                      }`
-                    }
-                  >
-                    {label}
-                  </NavLink>
-                ))}
+              {/* Top Navigation Links */}
+              <nav className="p-4 pb-2 space-y-1">
+                <NavLink
+                  to="/"
+                  end
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
+                        : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                    }`
+                  }
+                >
+                  Home
+                </NavLink>
+                <NavLink
+                  to="/collections"
+                  end
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
+                        : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                    }`
+                  }
+                >
+                  All Jewellery
+                </NavLink>
               </nav>
 
-              {/* Mobile Categories Accordion/List */}
+              {/* Direct Available Categories */}
               <div className="p-4 border-t border-[#F5EBDD] space-y-2">
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#C4933D] px-3">
-                  Collections
-                </span>
+                <div className="flex items-center justify-between px-2">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#C4933D]">
+                    Available Categories
+                  </span>
+                  <span className="text-[10px] text-[#786D63] font-medium">
+                    {categories.length} Categories
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   {categories.map((cat) => (
-                    <Link
+                    <NavLink
                       key={cat.slug}
                       to={`/collections/${cat.slug}`}
                       onClick={() => setSidebarOpen(false)}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#F5EBDD] text-xs font-medium text-[#30231F] transition-colors"
+                      className={({ isActive }) =>
+                        `flex items-center gap-1.5 p-2 rounded-lg text-xs font-medium transition-colors ${
+                          isActive
+                            ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
+                            : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                        }`
+                      }
                     >
-                      <ChevronRight size={12} className="text-[#C4933D]" />
+                      <ChevronRight size={12} className="text-[#C4933D] flex-shrink-0" />
                       <span className="truncate">{cat.name}</span>
-                    </Link>
+                    </NavLink>
                   ))}
                 </div>
+              </div>
+
+              {/* Secondary Navigation Links */}
+              <div className="p-4 border-t border-[#F5EBDD] space-y-1">
+                <NavLink
+                  to="/new-arrivals"
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
+                        : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                    }`
+                  }
+                >
+                  New Arrivals
+                </NavLink>
+                <NavLink
+                  to="/about"
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
+                        : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                    }`
+                  }
+                >
+                  About Us
+                </NavLink>
+                <NavLink
+                  to="/contact"
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#F5EBDD] text-[#C4933D] font-semibold'
+                        : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                    }`
+                  }
+                >
+                  Contact
+                </NavLink>
               </div>
 
               {/* Drawer Footer */}
