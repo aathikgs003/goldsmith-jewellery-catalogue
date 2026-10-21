@@ -50,12 +50,85 @@ const INITIAL_ENQUIRIES = [
 
 const INITIAL_CONTENT = {
   hero: {
+    eyebrow: 'TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY',
     title: 'Jewellery That Tells Your Story',
     subtitle:
       'Explore our exclusive collection of traditional and contemporary gold jewellery designs for every occasion.',
     primaryButton: 'Explore Collections',
     secondaryButton: 'Enquire on WhatsApp',
     image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85',
+  },
+  homeNewArrivals: {
+    eyebrow: 'NEW ARRIVALS',
+    title: 'Latest Designs for Every Occasion',
+    subtitle: 'From daily wear to grand celebrations, find the perfect jewellery to match your style.',
+    buttonText: 'Explore New Arrivals',
+    image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=800&q=80',
+  },
+  homeCustom: {
+    eyebrow: 'Bring Your Ideas to Life',
+    title: 'Custom Jewellery Designs',
+    subtitle: 'Have a design in mind? Let us create it for you with expert craftsmanship and attention to detail.',
+    buttonText: 'Request a Custom Design',
+    image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=800&q=80',
+  },
+  homeCraft: {
+    eyebrow: 'OUR CRAFTSMANSHIP',
+    title: 'Tradition in Every Detail',
+    subtitle: 'Each piece is crafted with care, skill and a deep respect for our heritage. We focus on quality, detail and timeless designs.',
+    buttonText: 'Know More About Us',
+    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
+  },
+  about: {
+    eyebrow: 'TRADITION · CRAFTSMANSHIP · PURITY',
+    title: 'The Story Behind Sri Lakshmi Gold Works',
+    subtitle: 'Crafting timeless gold jewellery with passion, precision, and heritage since decades.',
+    storyTitle: 'Crafted with Tradition, Inspired by You',
+    storyText1:
+      'At Sri Lakshmi Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration. Founded with a vision to preserve the authentic goldsmithing traditions of South India, we have been crafting bespoke gold jewellery for generations.',
+    storyText2:
+      'From our atelier in Ullal, Mangalore, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms tailored to your family celebrations.',
+    storyImage: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000&q=80',
+    artisansTitle: 'The Art Behind Every Design',
+    artisansText:
+      'Our master goldsmiths dedicate hours of patient handcrafting to each curve, gemstone setting, and filigree detail, ensuring that every ornament that leaves our workshop carries the legacy of traditional excellence.',
+    showroomTitle: 'Experience Our Collections in Person',
+    showroomText:
+      'We welcome you to visit our Ullal showroom to experience our gold jewellery collections first-hand, consult directly with our master goldsmiths, and enjoy a warm, personalized shopping experience.',
+    showroomImage: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=800&q=80',
+  },
+  contact: {
+    eyebrow: 'GET IN TOUCH',
+    title: 'We Are Here to Help',
+    subtitle:
+      'Have questions about a design, custom jewellery, or visiting our showroom? Reach out to our master goldsmiths.',
+    address: 'Ullal Main Road, (Your Location), India',
+    phone: '+91 9344894659',
+    whatsapp: '919344894659',
+    email: 'somidhari777@gmail.com',
+    hours: 'Mon – Sat: 9:30 AM – 9:00 PM\nSunday: 10:00 AM – 1:00 PM',
+    consultationTitle: 'Bridal & Custom Design Consultations',
+    consultationSubtitle:
+      'Planning a wedding or bespoke heirloom? Book an exclusive in-person consultation with our master goldsmith for weight estimates, hallmark certification, and custom design drawings.',
+    consultationButton: 'Book WhatsApp Consultation',
+  },
+  customDesign: {
+    eyebrow: 'BESPOKE GOLDSMITHING',
+    title: 'Bring Your Dream Jewellery to Life',
+    subtitle:
+      'Have a reference sketch, family photograph, or unique vision? Our master goldsmith will craft your one-of-a-kind gold piece with 916 BIS hallmarked purity.',
+    buttonText: 'Start Custom Design on WhatsApp',
+    image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1200&q=80',
+    step1Title: 'Share Your Idea',
+    step1Desc: 'Send a sketch, photo, or explain your idea directly over WhatsApp or in-person.',
+    step2Title: 'Goldsmith Consultation',
+    step2Desc: 'We assess purity, recommend gold weight, and finalize design details.',
+    step3Title: 'Handcrafted Artistry',
+    step3Desc: 'Our master goldsmith meticulously shapes, solders, and polishes your piece.',
+    step4Title: 'Hallmarked Delivery',
+    step4Desc: 'Certified 916 hallmarked gold, perfectly packaged and ready for your occasion.',
+    whatsappPrompt:
+      'Namaste Sri Lakshmi Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
   },
 }
 
@@ -237,11 +310,18 @@ export function AdminProvider({ children }) {
     localStorage.setItem('slgw_admin_content', JSON.stringify(websiteContent))
   }, [websiteContent])
 
-  const updateHeroContent = (heroFields) => {
+  const updateContent = (sectionKey, newContent) => {
     setWebsiteContent((prev) => ({
       ...prev,
-      hero: { ...prev.hero, ...heroFields },
+      [sectionKey]: {
+        ...(prev[sectionKey] || INITIAL_CONTENT[sectionKey] || {}),
+        ...newContent,
+      },
     }))
+  }
+
+  const updateHeroContent = (heroFields) => {
+    updateContent('hero', heroFields)
   }
 
   const [storeDetails, setStoreDetails] = useState(() => {
@@ -299,6 +379,7 @@ export function AdminProvider({ children }) {
         updateEnquiryStatus,
         deleteEnquiry,
         websiteContent,
+        updateContent,
         updateHeroContent,
         storeDetails,
         updateStoreDetails,

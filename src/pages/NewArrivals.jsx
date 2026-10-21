@@ -18,54 +18,6 @@ import { categories as fallbackCategories } from '../data/categories'
 import { useFavourites } from '../hooks/useProducts'
 import ProductLightbox from '../components/ProductLightbox'
 
-const CATEGORY_TILES = [
-  {
-    slug: 'all',
-    name: 'All New Arrivals',
-    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=80',
-  },
-  {
-    slug: 'bangles',
-    name: 'Bangles',
-    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&q=80',
-  },
-  {
-    slug: 'rings',
-    name: 'Rings',
-    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=80',
-  },
-  {
-    slug: 'chains',
-    name: 'Chains',
-    image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400&q=80',
-  },
-  {
-    slug: 'necklaces',
-    name: 'Necklaces',
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80',
-  },
-  {
-    slug: 'earrings',
-    name: 'Earrings',
-    image: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400&q=80',
-  },
-  {
-    slug: 'bridal',
-    name: 'Bridal Jewellery',
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80',
-  },
-  {
-    slug: 'children',
-    name: "Children's Jewellery",
-    image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=80',
-  },
-  {
-    slug: 'custom',
-    name: 'Custom Designs',
-    image: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80',
-  },
-]
-
 const STYLES = [
   { id: 'all', label: 'All Styles' },
   { id: 'traditional', label: 'Traditional' },
@@ -92,6 +44,24 @@ export default function NewArrivals() {
   const categoriesList = adminCtx?.categories || fallbackCategories
   const { isFav, toggle: toggleFav } = useFavourites()
 
+  // Dynamic Category Tiles including "All New Arrivals" + dynamic admin categories
+  const categoryTiles = useMemo(() => {
+    const list = adminCtx?.categories || fallbackCategories
+    const activeList = list.filter((c) => (c.status ? c.status === 'Active' : true))
+    return [
+      {
+        slug: 'all',
+        name: 'All New Arrivals',
+        image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=80',
+      },
+      ...activeList.map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        image: c.image || 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=80',
+      })),
+    ]
+  }, [adminCtx?.categories])
+
   // State
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -105,6 +75,14 @@ export default function NewArrivals() {
   const [toastMessage, setToastMessage] = useState('')
 
   const gridSectionRef = useRef(null)
+  const categoryScrollRef = useRef(null)
+
+  const scrollCategories = (direction) => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -320 : 320
+      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
 
   const scrollToGrid = () => {
     gridSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -273,44 +251,71 @@ export default function NewArrivals() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 2. CATEGORY TILES STRIP (9 Horizontal Cards)                        */}
+      {/* 2. CATEGORY TILES STRIP (Horizontal Scrollable Category Bar)        */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-[#D8B36A]/30 py-6">
+      <section className="bg-white border-b border-[#D8B36A]/30 py-5">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="flex items-center gap-3 sm:gap-3.5 overflow-x-auto pb-2 scrollbar-thin">
-            {CATEGORY_TILES.map((cat) => {
-              const isSelected = selectedCategory === cat.slug
+          <div className="relative group/scroll">
+            {/* Left Scroll Button */}
+            <button
+              type="button"
+              onClick={() => scrollCategories('left')}
+              aria-label="Scroll categories left"
+              className="absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white hover:bg-[#C4933D] text-[#30231F] hover:text-white border border-[#D8B36A]/50 shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer hidden sm:flex opacity-90 hover:opacity-100 hover:scale-105"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-              return (
-                <button
-                  key={cat.slug}
-                  onClick={() => handleCategorySelect(cat.slug)}
-                  className={`flex flex-col items-center flex-shrink-0 w-28 sm:w-32 p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer group ${
-                    isSelected
-                      ? 'bg-[#351016] text-white border-[#C4933D] shadow-md scale-102'
-                      : 'bg-[#FFFCF7] text-[#30231F] border-[#D8B36A]/40 hover:border-[#C4933D] hover:bg-white'
-                  }`}
-                >
-                  {/* Category Image Thumbnail */}
-                  <div className="w-full aspect-16/10 rounded-xl overflow-hidden mb-2 bg-[#F5EBDD] border border-[#D8B36A]/30">
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
+            {/* Horizontal Scrollable Category Bar */}
+            <div
+              ref={categoryScrollRef}
+              className="flex items-center gap-3 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1"
+            >
+              {categoryTiles.map((cat) => {
+                const isSelected = selectedCategory === cat.slug
 
-                  {/* Category Title */}
-                  <span
-                    className={`text-[11px] sm:text-xs font-semibold text-center leading-tight line-clamp-1 ${
-                      isSelected ? 'text-[#D8B36A]' : 'text-[#30231F]'
+                return (
+                  <button
+                    key={cat.slug}
+                    onClick={() => handleCategorySelect(cat.slug)}
+                    className={`group flex flex-col items-center flex-shrink-0 w-28 sm:w-32 md:w-36 p-2 sm:p-2.5 rounded-2xl border transition-all duration-300 text-center cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#351016] text-white border-[#C4933D] ring-2 ring-[#C4933D]/50 shadow-md scale-[1.02]'
+                        : 'bg-[#FFFCF7] text-[#30231F] border-[#D8B36A]/40 hover:border-[#C4933D] hover:bg-white hover:shadow-sm'
                     }`}
                   >
-                    {cat.name}
-                  </span>
-                </button>
-              )
-            })}
+                    {/* Category Image Thumbnail */}
+                    <div className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-[#F5EBDD] border border-[#D8B36A]/30">
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+
+                    {/* Category Title */}
+                    <span
+                      className={`text-xs font-semibold tracking-wide leading-tight truncate w-full text-center px-1 ${
+                        isSelected ? 'text-[#D8B36A]' : 'text-[#30231F] group-hover:text-[#C4933D]'
+                      }`}
+                    >
+                      {cat.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Right Scroll Button */}
+            <button
+              type="button"
+              onClick={() => scrollCategories('right')}
+              aria-label="Scroll categories right"
+              className="absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white hover:bg-[#C4933D] text-[#30231F] hover:text-white border border-[#D8B36A]/50 shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer hidden sm:flex opacity-90 hover:opacity-100 hover:scale-105"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -82,6 +82,15 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const [priceExpanded, setPriceExpanded] = useState(false)
   const [weightExpanded, setWeightExpanded] = useState(false)
   const [availabilityExpanded, setAvailabilityExpanded] = useState(false)
+
+  // Ref & scroll handler for horizontal category bar
+  const categoryScrollRef = useRef(null)
+  const scrollCategories = (direction) => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -320 : 320
+      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
 
   // Current category object
   const currentCategory = useMemo(() => {
@@ -312,44 +321,70 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 2. CATEGORY QUICK SELECTOR ROW (Matching Screenshot) */}
+      {/* 2. CATEGORY QUICK SELECTOR ROW (Horizontal Scrollable Category Bar) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-3.5">
-          {categories.map((cat) => {
-            const isSelected = selectedCategorySlug === cat.slug
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-5">
+        <div className="relative group/scroll">
+          {/* Left Scroll Button */}
+          <button
+            type="button"
+            onClick={() => scrollCategories('left')}
+            aria-label="Scroll categories left"
+            className="absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white hover:bg-[#C4933D] text-[#30231F] hover:text-white border border-[#D8B36A]/50 shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer hidden sm:flex opacity-90 hover:opacity-100 hover:scale-105"
+          >
+            <ChevronLeft size={18} />
+          </button>
 
-            return (
-              <button
-                key={cat.slug}
-                onClick={() => handleCategorySwitch(cat.slug)}
-                className={`group flex flex-col items-center p-2 rounded-2xl transition-all duration-300 text-center cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#351016] text-white shadow-md ring-2 ring-[#C4933D]'
-                    : 'bg-white text-[#30231F] border border-[#D8B36A]/30 hover:border-[#C4933D] hover:shadow-sm'
-                }`}
-              >
-                {/* Thumbnail Image */}
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-[#F5EBDD] mb-2 border border-black/5">
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+          {/* Horizontal Scrollable Category Bar */}
+          <div
+            ref={categoryScrollRef}
+            className="flex items-center gap-3 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1"
+          >
+            {categories.map((cat) => {
+              const isSelected = selectedCategorySlug === cat.slug
 
-                {/* Category Name */}
-                <span
-                  className={`text-xs font-semibold leading-tight truncate w-full ${
-                    isSelected ? 'text-white' : 'text-[#30231F] group-hover:text-[#C4933D]'
+              return (
+                <button
+                  key={cat.slug}
+                  onClick={() => handleCategorySwitch(cat.slug)}
+                  className={`group flex flex-col items-center flex-shrink-0 w-28 sm:w-32 md:w-36 p-2 sm:p-2.5 rounded-2xl transition-all duration-300 text-center cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#351016] text-white shadow-md ring-2 ring-[#C4933D] scale-[1.02]'
+                      : 'bg-white text-[#30231F] border border-[#D8B36A]/30 hover:border-[#C4933D] hover:shadow-sm'
                   }`}
                 >
-                  {cat.name}
-                </span>
-              </button>
-            )
-          })}
+                  {/* Thumbnail Image */}
+                  <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-[#F5EBDD] mb-2 border border-black/5">
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+
+                  {/* Category Name */}
+                  <span
+                    className={`text-xs font-semibold leading-tight truncate w-full px-1 ${
+                      isSelected ? 'text-white' : 'text-[#30231F] group-hover:text-[#C4933D]'
+                    }`}
+                  >
+                    {cat.name}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Right Scroll Button */}
+          <button
+            type="button"
+            onClick={() => scrollCategories('right')}
+            aria-label="Scroll categories right"
+            className="absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white hover:bg-[#C4933D] text-[#30231F] hover:text-white border border-[#D8B36A]/50 shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer hidden sm:flex opacity-90 hover:opacity-100 hover:scale-105"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
       </section>
 

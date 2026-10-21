@@ -27,12 +27,34 @@ import { useAdmin } from '../context/AdminContext'
 export default function Home() {
   const { websiteContent } = useAdmin()
   const heroData = websiteContent?.hero || {
+    eyebrow: 'TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY',
     title: 'Jewellery That Tells Your Story',
     subtitle:
       'Explore our exclusive collection of traditional and contemporary gold jewellery designs for every occasion.',
     primaryButton: 'Explore Collections',
     secondaryButton: 'Enquire on WhatsApp',
     image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85',
+  }
+  const newArrivalsBanner = websiteContent?.homeNewArrivals || {
+    eyebrow: 'NEW ARRIVALS',
+    title: 'Latest Designs for Every Occasion',
+    subtitle: 'From daily wear to grand celebrations, find the perfect jewellery to match your style.',
+    buttonText: 'Explore New Arrivals',
+    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1000&q=80',
+  }
+  const customBanner = websiteContent?.homeCustom || {
+    eyebrow: 'Bring Your Ideas to Life',
+    title: 'Custom Jewellery Designs',
+    subtitle: 'Have a design in mind? Let us create it for you with expert craftsmanship and attention to detail.',
+    buttonText: 'Request a Custom Design',
+    image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1000&q=80',
+  }
+  const craftBanner = websiteContent?.homeCraft || {
+    eyebrow: 'OUR CRAFTSMANSHIP',
+    title: 'Tradition in Every Detail',
+    subtitle: 'Each piece is crafted with care, skill and a deep respect for our rich heritage. We focus on quality, detail and timeless designs.',
+    buttonText: 'Know More About Us',
+    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000&q=80',
   }
   const featuredProducts = useFeaturedProducts(8)
   const [lightboxProduct, setLightboxProduct] = useState(null)
@@ -334,8 +356,8 @@ export default function Home() {
             <div className="lg:col-span-5 relative">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#C4933D]/30 shadow-2xl bg-[#240B12]">
                 <img
-                  src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1000&q=80"
-                  alt="Intricate South Indian Gold Jewellery Work"
+                  src={newArrivalsBanner.image}
+                  alt={newArrivalsBanner.title}
                   loading="lazy"
                   className="w-full h-full object-cover"
                 />
@@ -345,20 +367,18 @@ export default function Home() {
             {/* Right Text */}
             <div className="lg:col-span-7 space-y-4">
               <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-semibold text-[#D8B36A]">
-                NEW ARRIVALS
+                {newArrivalsBanner.eyebrow}
               </span>
 
               <h2
                 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-white tracking-tight"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                Latest Designs
-                <br />
-                for Every Occasion
+                {newArrivalsBanner.title}
               </h2>
 
               <p className="text-sm sm:text-base text-[#F5EBDD]/80 font-light max-w-lg leading-relaxed">
-                From daily wear to grand celebrations, find the perfect jewellery to match your style.
+                {newArrivalsBanner.subtitle}
               </p>
 
               <div className="pt-2">
@@ -366,7 +386,7 @@ export default function Home() {
                   to="/new-arrivals"
                   className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
                 >
-                  <span>Explore New Arrivals</span>
+                  <span>{newArrivalsBanner.buttonText}</span>
                   <ArrowRight size={14} />
                 </Link>
               </div>
@@ -392,18 +412,18 @@ export default function Home() {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-4">
               <span className="text-[11px] sm:text-xs font-semibold text-[#C4933D] tracking-wider block">
-                Bring Your Ideas to Life
+                {customBanner.eyebrow}
               </span>
 
               <h2
                 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#30231F] tracking-tight"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                Custom Jewellery Designs
+                {customBanner.title}
               </h2>
 
               <p className="text-sm sm:text-base text-[#786D63] font-light max-w-lg leading-relaxed">
-                Have a design in mind? Let us create it for you with expert craftsmanship and attention to detail.
+                {customBanner.subtitle}
               </p>
 
               <div className="pt-2">
@@ -413,7 +433,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
                 >
-                  <span>Request a Custom Design</span>
+                  <span>{customBanner.buttonText}</span>
                   <ArrowRight size={14} />
                 </a>
               </div>
@@ -423,8 +443,8 @@ export default function Home() {
             <div className="lg:col-span-5 relative">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#D8B36A]/40 shadow-xl bg-white">
                 <img
-                  src="https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1000&q=80"
-                  alt="Drafting and Crafting Custom Gold Jewellery"
+                  src={customBanner.image}
+                  alt={customBanner.title}
                   loading="lazy"
                   className="w-full h-full object-cover"
                 />
@@ -443,18 +463,18 @@ export default function Home() {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-4">
               <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-semibold text-[#D8B36A] block">
-                OUR CRAFTSMANSHIP
+                {craftBanner.eyebrow}
               </span>
 
               <h2
                 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-white tracking-tight"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                Tradition in Every Detail
+                {craftBanner.title}
               </h2>
 
               <p className="text-sm sm:text-base text-white/85 font-light max-w-xl leading-relaxed">
-                Each piece is crafted with care, skill and a deep respect for our rich heritage. We focus on quality, detail and timeless designs.
+                {craftBanner.subtitle}
               </p>
 
               <div className="pt-2">
@@ -462,7 +482,7 @@ export default function Home() {
                   to="/about"
                   className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
                 >
-                  <span>Know More About Us</span>
+                  <span>{craftBanner.buttonText}</span>
                   <ArrowRight size={14} />
                 </Link>
               </div>

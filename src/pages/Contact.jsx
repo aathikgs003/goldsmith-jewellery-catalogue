@@ -18,8 +18,9 @@ import { siteConfig } from '../config/siteConfig'
 import WhatsAppButton from '../components/WhatsAppButton'
 
 export default function Contact() {
-  const { storeDetails, addEnquiry } = useAdmin()
+  const { websiteContent, storeDetails, addEnquiry } = useAdmin()
   const store = storeDetails || siteConfig
+  const contactData = websiteContent?.contact || {}
 
   // Form State
   const [formData, setFormData] = useState({
@@ -32,7 +33,8 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false)
   const [enquiryId, setEnquiryId] = useState('')
 
-  const waUrl = `https://wa.me/${(store.whatsapp || siteConfig.whatsapp).replace(/[^0-9]/g, '')}`
+  const rawPhone = contactData.whatsapp || store.whatsapp || siteConfig.whatsapp
+  const waUrl = `https://wa.me/${rawPhone.replace(/[^0-9]/g, '')}`
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -92,12 +94,13 @@ export default function Contact() {
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#30231F] leading-[1.08]"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Contact Our Atelier
+              {contactData.title || 'Contact Our Atelier'}
             </h1>
 
             {/* Subtitle */}
             <p className="text-sm sm:text-base text-[#786D63] font-light leading-relaxed max-w-xl">
-              Experience the warmth of traditional South Indian gold craftsmanship. Visit our physical showroom in Ullal, consult directly with our master goldsmith, or connect with us online.
+              {contactData.subtitle ||
+                'Experience the warmth of traditional South Indian gold craftsmanship. Visit our physical showroom in Ullal, consult directly with our master goldsmith, or connect with us online.'}
             </p>
 
             {/* Key Assurance Highlights */}
@@ -137,7 +140,7 @@ export default function Contact() {
                 Atelier &amp; Showroom
               </h3>
               <p className="text-xs text-[#786D63] leading-relaxed line-clamp-3">
-                {store.address}
+                {contactData.address || store.address}
               </p>
             </div>
             <div className="pt-4 mt-2 border-t border-[#D8B36A]/20">
@@ -200,10 +203,10 @@ export default function Contact() {
             </div>
             <div className="pt-4 mt-2 border-t border-[#D8B36A]/20">
               <a
-                href={`tel:${store.phone}`}
+                href={`tel:${contactData.phone || store.phone}`}
                 className="text-xs font-semibold text-[#30231F] hover:text-[#C4933D] transition-colors font-mono"
               >
-                {store.phone}
+                {contactData.phone || store.phone}
               </a>
             </div>
           </div>
@@ -221,7 +224,7 @@ export default function Contact() {
                 Business Hours
               </h3>
               <div className="text-xs text-[#786D63] leading-relaxed whitespace-pre-line">
-                {store.hours || 'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM'}
+                {contactData.hours || store.hours || 'Mon – Sat: 9:30 AM – 9:00 PM\nSunday: 10:00 AM – 1:00 PM'}
               </div>
             </div>
             <div className="pt-4 mt-2 border-t border-[#D8B36A]/20">
@@ -506,14 +509,18 @@ export default function Contact() {
                   className="text-xl sm:text-2xl font-bold text-white leading-tight"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  Planning a Bridal or Bespoke Gold Order?
+                  {contactData.consultationTitle || 'Planning a Bridal or Bespoke Gold Order?'}
                 </h3>
                 <p className="text-xs text-white/80 leading-relaxed font-light">
-                  Bring your family or send reference sketches beforehand. Our master goldsmith will arrange a dedicated private sitting to discuss purity, grams breakdown, and traditional temple motifs.
+                  {contactData.consultationSubtitle ||
+                    'Bring your family or send reference sketches beforehand. Our master goldsmith will arrange a dedicated private sitting to discuss purity, grams breakdown, and traditional temple motifs.'}
                 </p>
 
                 <div className="pt-2">
-                  <WhatsAppButton label="Book WhatsApp Consultation" size="md" />
+                  <WhatsAppButton
+                    label={contactData.consultationButton || 'Book WhatsApp Consultation'}
+                    size="md"
+                  />
                 </div>
               </div>
             </div>

@@ -1,4 +1,5 @@
-import { MessageCircle, Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { MessageCircle, Sparkles, Edit3 } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 
 export default function AdminCustomDesigns() {
@@ -15,16 +16,27 @@ export default function AdminCustomDesigns() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1
-          className="text-2xl sm:text-3xl font-bold text-[#30231F]"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          Custom Jewellery Orders
-        </h1>
-        <p className="text-xs sm:text-sm text-[#786D63] mt-1">
-          Review bespoke customer design requests, sketches, and WhatsApp customization enquiries
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1
+            className="text-2xl sm:text-3xl font-bold text-[#30231F]"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Custom Jewellery Orders
+          </h1>
+          <p className="text-xs sm:text-sm text-[#786D63] mt-1">
+            Review bespoke customer design requests, sketches, and WhatsApp customization enquiries
+          </p>
+        </div>
+        <div>
+          <Link
+            to="/admin/content"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#30231F] bg-white border border-[#D8B36A]/40 rounded-lg hover:border-[#C4933D] hover:bg-[#FFFCF7] transition-all shadow-xs"
+          >
+            <Edit3 size={14} className="text-[#C4933D]" />
+            <span>Manage Custom Content</span>
+          </Link>
+        </div>
       </div>
 
       {/* Info Banner */}

@@ -15,8 +15,9 @@ import { useAdmin } from '../context/AdminContext'
 import { siteConfig } from '../config/siteConfig'
 
 export default function About() {
-  const { storeDetails } = useAdmin()
+  const { websiteContent, storeDetails } = useAdmin()
   const store = storeDetails || siteConfig
+  const about = websiteContent?.about || {}
 
   const showroomRef = useRef(null)
 
@@ -59,12 +60,13 @@ export default function About() {
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#30231F] leading-[1.08]"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                About Sri Lakshmi<br />Gold Works
+                {about.title || 'About Sri Lakshmi Gold Works'}
               </h1>
 
               {/* Subtitle */}
               <p className="text-sm sm:text-base text-[#786D63] font-light leading-relaxed max-w-lg">
-                A passion for timeless jewellery, crafted with care, tradition and fine craftsmanship.
+                {about.subtitle ||
+                  'A passion for timeless jewellery, crafted with care, tradition and fine craftsmanship.'}
               </p>
 
               {/* Action Buttons */}
@@ -126,7 +128,7 @@ export default function About() {
           <div className="lg:col-span-5 relative">
             <div className="relative aspect-4/3 sm:aspect-[4/5] rounded-3xl overflow-hidden bg-[#25211D] border border-[#D8B36A]/40 shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=900&q=85"
+                src={about.storyImage || 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=900&q=85'}
                 alt="Master Goldsmith crafting gold necklace with bench tools"
                 className="w-full h-full object-cover"
               />
@@ -156,16 +158,18 @@ export default function About() {
               className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#30231F] leading-tight"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Crafted with Tradition<br />Inspired by You
+              {about.storyTitle || 'Crafted with Tradition, Inspired by You'}
             </h2>
 
             {/* Paragraphs */}
             <div className="space-y-4 text-xs sm:text-sm text-[#786D63] font-light leading-relaxed">
               <p>
-                Sri Lakshmi Gold Works is built on a deep appreciation for traditional craftsmanship and a passion for creating beautiful jewellery designs for every occasion.
+                {about.storyText1 ||
+                  'Sri Lakshmi Gold Works is built on a deep appreciation for traditional craftsmanship and a passion for creating beautiful jewellery designs for every occasion.'}
               </p>
               <p>
-                Our focus is on quality, detailed workmanship and customer satisfaction. Each design is carefully crafted by skilled artisans, combining traditional techniques with contemporary styles.
+                {about.storyText2 ||
+                  'Our focus is on quality, detailed workmanship and customer satisfaction. Each design is carefully crafted by skilled artisans, combining traditional techniques with contemporary styles.'}
               </p>
             </div>
 
@@ -333,12 +337,13 @@ export default function About() {
                 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                The Art Behind<br />Every Design
+                {about.artisansTitle || 'The Art Behind Every Design'}
               </h2>
 
               {/* Subtitle */}
               <p className="text-xs sm:text-sm text-[#F5EBDD]/80 font-light leading-relaxed max-w-lg">
-                Our jewellery is crafted by experienced artisans who bring traditional techniques and modern designs together. Every piece is made with care, skill and a deep respect for the art of goldsmithing.
+                {about.artisansText ||
+                  'Our jewellery is crafted by experienced artisans who bring traditional techniques and modern designs together. Every piece is made with care, skill and a deep respect for the art of goldsmithing.'}
               </p>
 
               {/* CTA Button */}
@@ -387,12 +392,13 @@ export default function About() {
               className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#30231F] leading-tight"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Experience Our<br />Collections
+              {about.showroomTitle || 'Experience Our Collections'}
             </h2>
 
             {/* Subtitle */}
             <p className="text-xs sm:text-sm text-[#786D63] font-light leading-relaxed">
-              We welcome you to visit our store and explore our wide range of jewellery designs in person.
+              {about.showroomText ||
+                'We welcome you to visit our store and explore our wide range of jewellery designs in person.'}
             </p>
 
             {/* Button */}
@@ -413,7 +419,7 @@ export default function About() {
           <div className="lg:col-span-5 relative">
             <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-[#F5EBDD] border border-[#D8B36A]/40 shadow-lg">
               <img
-                src="https://images.unsplash.com/photo-1582037928769-181f2644ecb7?w=900&q=85"
+                src={about.showroomImage || 'https://images.unsplash.com/photo-1582037928769-181f2644ecb7?w=900&q=85'}
                 alt="Sri Lakshmi Gold Works Showroom Interior"
                 className="w-full h-full object-cover"
               />
