@@ -231,14 +231,14 @@ export default function NewArrivals() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#F5EBDD]/40 lg:from-transparent to-transparent" />
               </div>
 
-              {/* Floating Circular Seal Medallion (From Screenshot) */}
-              <div className="absolute right-3 sm:right-6 lg:right-6 top-1/2 -translate-y-1/2 w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-[#D8B36A]/60 p-1 flex items-center justify-center bg-black/45 backdrop-blur-xs text-center text-white shadow-2xl">
-                <div className="w-full h-full rounded-full border border-dashed border-[#D8B36A]/70 flex flex-col items-center justify-center p-2">
-                  <span className="text-[10px] sm:text-xs tracking-wider uppercase text-[#D8B36A] font-light mb-0.5">
+              {/* Floating Circular Seal Medallion */}
+              <div className="absolute right-2 sm:right-6 lg:right-6 top-1/2 -translate-y-1/2 w-24 h-24 sm:w-36 sm:h-36 rounded-full border border-[#D8B36A]/60 p-1 flex items-center justify-center bg-black/50 backdrop-blur-xs text-center text-white shadow-2xl">
+                <div className="w-full h-full rounded-full border border-dashed border-[#D8B36A]/70 flex flex-col items-center justify-center p-1 sm:p-2">
+                  <span className="text-[9px] sm:text-xs tracking-wider uppercase text-[#D8B36A] font-light mb-0.5">
                     New
                   </span>
                   <span
-                    className="text-xs sm:text-sm font-bold leading-tight"
+                    className="text-[10.5px] sm:text-sm font-bold leading-tight"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
                     Designs for Every Occasion

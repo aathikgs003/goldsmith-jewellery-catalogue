@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Share2, MessageCircle, Eye, Link2 } from 'lucide-react'
+import { Heart, Share2, Eye, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { buildWhatsAppUrl, buildProductUrl } from '../config/siteConfig'
+import { buildProductUrl } from '../config/siteConfig'
 
 const LONG_PRESS_DELAY = 550 // ms
 
@@ -37,7 +37,6 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
 
   // ─── Sharing Logic ───
   const productUrl = buildProductUrl(product.id)
-  const whatsappUrl = buildWhatsAppUrl(product.name, product.id)
 
   const share = async (e) => {
     e?.stopPropagation()
@@ -129,22 +128,22 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
       </div>
 
       {/* ─── Card Body ─── */}
-      <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between bg-white border-t border-[#F5EBDD]">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between bg-white border-t border-[#F5EBDD]">
         <div>
           <Link to={`/product/${product.slug}`} className="block group/link">
             <h3
-              className="text-sm font-semibold text-[#30231F] group-hover/link:text-[#C4933D] transition-colors truncate leading-tight"
+              className="text-xs sm:text-sm font-semibold text-[#30231F] group-hover/link:text-[#C4933D] transition-colors truncate leading-tight"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {product.name}
             </h3>
           </Link>
 
-          <p className="text-[11px] text-[#786D63] font-mono mt-0.5">
+          <p className="text-[10px] sm:text-[11px] text-[#786D63] font-mono mt-0.5">
             {product.id}
           </p>
 
-          <p className="text-xs font-semibold text-[#C4933D] mt-1.5">
+          <p className="text-xs font-semibold text-[#C4933D] mt-1 sm:mt-1.5">
             {product.price ? product.price : 'Price on enquiry'}
           </p>
         </div>
@@ -207,16 +206,6 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
                         <Link2 size={13} className="text-[#C4933D]" />
                         <span>Copy Link</span>
                       </button>
-                      <a
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#30231F] hover:bg-[#FFFCF7] text-left"
-                        onClick={() => setShareMenuOpen(false)}
-                      >
-                        <MessageCircle size={13} className="text-[#25D366]" />
-                        <span>WhatsApp Enquiry</span>
-                      </a>
                     </div>
                   </motion.div>
                 </>
@@ -281,16 +270,14 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
                   <Link2 size={15} className="text-[#C4933D]" />
                   <span>Copy Product Link</span>
                 </button>
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to={`/contact?design=${encodeURIComponent(product.name)}`}
                   className="w-full flex items-center gap-3 px-3 py-2 text-[#30231F] hover:bg-[#FFFCF7] rounded-xl text-left"
                   onClick={() => setShareMenuOpen(false)}
                 >
-                  <MessageCircle size={15} className="text-[#25D366]" />
-                  <span>Enquire on WhatsApp</span>
-                </a>
+                  <Eye size={15} className="text-[#C4933D]" />
+                  <span>Enquire Design</span>
+                </Link>
               </div>
 
               <button

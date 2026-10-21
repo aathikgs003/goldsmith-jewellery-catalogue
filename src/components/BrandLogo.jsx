@@ -7,11 +7,11 @@ export default function BrandLogo({ variant = 'dark', className = '' }) {
   return (
     <Link
       to="/"
-      className={`flex items-center gap-3 group leading-tight ${className}`}
+      className={`flex items-center gap-2 sm:gap-3 group leading-tight ${className}`}
       aria-label={`${siteConfig.name} — Home`}
     >
       {/* Gold Lotus / Floral Emblem */}
-      <div className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center">
         <svg
           viewBox="0 0 100 100"
           className="w-full h-full drop-shadow-xs"
@@ -41,9 +41,9 @@ export default function BrandLogo({ variant = 'dark', className = '' }) {
       </div>
 
       {/* Typography */}
-      <div className="flex flex-col">
+      <div className="flex flex-col min-w-0">
         <span
-          className={`text-base sm:text-lg lg:text-xl font-bold tracking-tight leading-none ${
+          className={`text-sm sm:text-base lg:text-xl font-bold tracking-tight leading-tight truncate ${
             isLight ? 'text-white' : 'text-[#30231F] group-hover:text-[#C4933D]'
           } transition-colors`}
           style={{ fontFamily: "'Playfair Display', serif" }}
@@ -51,7 +51,7 @@ export default function BrandLogo({ variant = 'dark', className = '' }) {
           {siteConfig.name}
         </span>
         <span
-          className={`text-[8.5px] sm:text-[9px] tracking-[0.28em] font-semibold uppercase mt-1 ${
+          className={`text-[8px] sm:text-[9px] tracking-[0.22em] sm:tracking-[0.28em] font-semibold uppercase mt-0.5 ${
             isLight ? 'text-[#D8B36A]' : 'text-[#C4933D]'
           }`}
         >

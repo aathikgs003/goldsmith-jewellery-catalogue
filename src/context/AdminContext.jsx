@@ -55,7 +55,7 @@ const INITIAL_CONTENT = {
     subtitle:
       'Explore our exclusive collection of traditional and contemporary gold jewellery designs for every occasion.',
     primaryButton: 'Explore Collections',
-    secondaryButton: 'Enquire on WhatsApp',
+    secondaryButton: 'Contact Us',
     image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85',
   },
   homeNewArrivals: {
@@ -110,25 +110,23 @@ const INITIAL_CONTENT = {
     consultationTitle: 'Bridal & Custom Design Consultations',
     consultationSubtitle:
       'Planning a wedding or bespoke heirloom? Book an exclusive in-person consultation with our master goldsmith for weight estimates, hallmark certification, and custom design drawings.',
-    consultationButton: 'Book WhatsApp Consultation',
+    consultationButton: 'Book In-Store Consultation',
   },
   customDesign: {
     eyebrow: 'BESPOKE GOLDSMITHING',
     title: 'Bring Your Dream Jewellery to Life',
     subtitle:
       'Have a reference sketch, family photograph, or unique vision? Our master goldsmith will craft your one-of-a-kind gold piece with 916 BIS hallmarked purity.',
-    buttonText: 'Start Custom Design on WhatsApp',
+    buttonText: 'Request Custom Design',
     image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1200&q=80',
     step1Title: 'Share Your Idea',
-    step1Desc: 'Send a sketch, photo, or explain your idea directly over WhatsApp or in-person.',
+    step1Desc: 'Send a sketch, photo, or explain your idea directly to our goldsmith or in-person.',
     step2Title: 'Goldsmith Consultation',
     step2Desc: 'We assess purity, recommend gold weight, and finalize design details.',
     step3Title: 'Handcrafted Artistry',
     step3Desc: 'Our master goldsmith meticulously shapes, solders, and polishes your piece.',
     step4Title: 'Hallmarked Delivery',
     step4Desc: 'Certified 916 hallmarked gold, perfectly packaged and ready for your occasion.',
-    whatsappPrompt:
-      'Namaste Lakshmanan Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
   },
 }
 
@@ -301,7 +299,12 @@ export function AdminProvider({ children }) {
     try {
       const saved = localStorage.getItem('slgw_admin_content')
       if (saved) {
-        const migrated = saved.replaceAll('Sri Lakshmi', 'Lakshmanan')
+        let migrated = saved.replaceAll('Sri Lakshmi', 'Lakshmanan')
+        migrated = migrated
+          .replaceAll('Enquire on WhatsApp', 'Contact Us')
+          .replaceAll('Start Custom Design on WhatsApp', 'Request Custom Design')
+          .replaceAll('Book WhatsApp Consultation', 'Book In-Store Consultation')
+          .replaceAll('directly over WhatsApp or in-person', 'directly to our goldsmith or in-person')
         return JSON.parse(migrated)
       }
       return INITIAL_CONTENT

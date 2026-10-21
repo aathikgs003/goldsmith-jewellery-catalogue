@@ -3,7 +3,6 @@ import {
   Store,
   MapPin,
   Phone,
-  MessageCircle,
   Mail,
   Clock,
   Save,
@@ -127,7 +126,7 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {/* Phone & WhatsApp */}
+          {/* Phone & Secondary Phone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
@@ -149,12 +148,12 @@ export default function AdminSettings() {
 
             <div>
               <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
-                WhatsApp Number
+                Secondary / Mobile Phone
               </label>
               <div className="relative">
-                <MessageCircle
+                <Phone
                   size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C4933D]"
                 />
                 <input
                   type="text"
@@ -319,13 +318,11 @@ export default function AdminSettings() {
 
               <div className="pt-2">
                 <a
-                  href={`https://wa.me/${formData.whatsapp.replace(/[^0-9]/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1eb858] text-white py-2 rounded-lg text-xs font-semibold transition-colors"
+                  href={`tel:${formData.phone.replace(/[^0-9+]/g, '')}`}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-[#351016] hover:bg-[#45151D] text-white py-2 rounded-lg text-xs font-semibold transition-colors"
                 >
-                  <MessageCircle size={15} />
-                  <span>Enquire via WhatsApp</span>
+                  <Phone size={14} />
+                  <span>Call Showroom</span>
                 </a>
               </div>
             </div>

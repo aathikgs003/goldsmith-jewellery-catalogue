@@ -15,10 +15,9 @@ import {
   ZoomOut,
   RotateCcw,
   Share2,
-  MessageCircle,
   Link2,
 } from 'lucide-react'
-import { buildWhatsAppUrl, buildProductUrl } from '../config/siteConfig'
+import { buildProductUrl } from '../config/siteConfig'
 
 // ─── Zoom state machine ─────────────────────────────────────────────────────
 
@@ -244,7 +243,6 @@ export default function ProductLightbox({ product, products, initialIndex = 0, o
 
   // ─── Share ───────────────────────────────────────────────────────────
   const productUrl = buildProductUrl(product?.id)
-  const whatsappUrl = buildWhatsAppUrl(product?.name, product?.id)
 
   const handleShare = async () => {
     setShareOpen(false)
@@ -322,27 +320,11 @@ export default function ProductLightbox({ product, products, initialIndex = 0, o
                       >
                         <LightboxShareItem icon={<Share2 size={14} />} label="Share Design" onClick={handleShare} />
                         <LightboxShareItem icon={<Link2 size={14} />} label="Copy Link" onClick={copyLink} />
-                        <LightboxShareItem
-                          icon={<MessageCircle size={14} className="text-[#25D366]" />}
-                          label="WhatsApp Enquiry"
-                          onClick={() => { setShareOpen(false); window.open(whatsappUrl, '_blank') }}
-                        />
                       </motion.div>
                     </>
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* WhatsApp */}
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Enquire on WhatsApp"
-                className="hidden sm:flex w-9 h-9 rounded-full bg-[#25D366]/20 hover:bg-[#25D366] items-center justify-center text-[#25D366] hover:text-white transition-colors"
-              >
-                <MessageCircle size={16} />
-              </a>
 
               {/* Close */}
               <button
@@ -490,18 +472,6 @@ export default function ProductLightbox({ product, products, initialIndex = 0, o
               </div>
             )}
 
-            {/* Mobile WhatsApp button */}
-            <div className="flex sm:hidden justify-center mt-3">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white text-sm font-medium px-5 py-2.5 rounded-full transition-colors"
-              >
-                <MessageCircle size={16} />
-                Enquire on WhatsApp
-              </a>
-            </div>
           </div>
         </div>
       </motion.div>

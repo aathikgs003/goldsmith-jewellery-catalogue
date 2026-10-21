@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MessageCircle, Sparkles, Edit3 } from 'lucide-react'
+import { Phone, Sparkles, Edit3 } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 
 export default function AdminCustomDesigns() {
@@ -25,7 +25,7 @@ export default function AdminCustomDesigns() {
             Custom Jewellery Orders
           </h1>
           <p className="text-xs sm:text-sm text-[#786D63] mt-1">
-            Review bespoke customer design requests, sketches, and WhatsApp customization enquiries
+            Review bespoke customer design requests, sketches, and customization enquiries
           </p>
         </div>
         <div>
@@ -47,7 +47,7 @@ export default function AdminCustomDesigns() {
             <span>Master Goldsmith Custom Workshop</span>
           </h3>
           <p className="text-xs text-white/80 mt-1 max-w-xl">
-            Customers can send sketches or reference photographs on WhatsApp to create bespoke bridal ornaments, temple motifs, or remelt heirloom gold with certified 916 BIS hallmark purity.
+            Customers can submit sketches or reference photographs to create bespoke bridal ornaments, temple motifs, or remelt heirloom gold with certified 916 BIS hallmark purity.
           </p>
         </div>
       </div>
@@ -78,9 +78,6 @@ export default function AdminCustomDesigns() {
             <tbody className="divide-y divide-[#D8B36A]/20 text-sm">
               {customEnquiries.map((enq) => {
                 const cleanPhone = enq.contact?.replace(/[^0-9]/g, '')
-                const waUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(
-                  `Namaste ${enq.name}, we received your custom jewellery request at Lakshmanan Gold Works. Let's discuss your design specification!`
-                )}`
 
                 return (
                   <tr key={enq.id} className="hover:bg-[#FFFCF7]/80 transition-colors">
@@ -89,12 +86,10 @@ export default function AdminCustomDesigns() {
                     </td>
                     <td className="py-3.5 px-4 sm:px-6">
                       <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                        href={`tel:${cleanPhone}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#30231F] bg-[#F5EBDD] px-2.5 py-1 rounded-md border border-[#D8B36A]/40 hover:bg-[#D8B36A]/30 transition-colors"
                       >
-                        <MessageCircle size={13} className="text-emerald-600" />
+                        <Phone size={12} className="text-[#C4933D]" />
                         <span>{enq.contact}</span>
                       </a>
                     </td>
@@ -112,13 +107,11 @@ export default function AdminCustomDesigns() {
                     </td>
                     <td className="py-3.5 px-4 sm:px-6 text-right">
                       <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 bg-[#25D366] hover:bg-[#1eb858] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                        href={`tel:${cleanPhone}`}
+                        className="inline-flex items-center gap-1 bg-[#351016] hover:bg-[#45151D] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                       >
-                        <MessageCircle size={14} />
-                        <span>Consult on WhatsApp</span>
+                        <Phone size={13} />
+                        <span>Call Client</span>
                       </a>
                     </td>
                   </tr>

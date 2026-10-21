@@ -11,6 +11,7 @@ import {
   List,
   Gem,
   ShieldCheck,
+  SlidersHorizontal,
 } from 'lucide-react'
 import ProductCard from './ProductCard'
 import ProductLightbox from './ProductLightbox'
@@ -82,6 +83,7 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const [priceExpanded, setPriceExpanded] = useState(false)
   const [weightExpanded, setWeightExpanded] = useState(false)
   const [availabilityExpanded, setAvailabilityExpanded] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   // Ref & scroll handler for horizontal category bar
   const categoryScrollRef = useRef(null)
@@ -208,6 +210,13 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
     setSelectedAvailability('all')
     setCurrentPage(1)
   }
+
+  const activeFilterCount =
+    (selectedStyle !== 'all' ? 1 : 0) +
+    (selectedWeight !== 'all' ? 1 : 0) +
+    (selectedOccasion !== 'all' ? 1 : 0) +
+    (selectedAvailability !== 'all' ? 1 : 0) +
+    (searchQuery.trim() ? 1 : 0)
 
   // Lightbox handlers
   const openLightbox = (product) => {
@@ -533,10 +542,31 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
       {/* 4. MAIN CONTENT AREA (Left Filter Sidebar + Right Product Grid) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pb-16">
+        {/* Mobile Filter Toggle Button */}
+        <div className="lg:hidden mb-4 flex items-center justify-between bg-white rounded-2xl border border-[#D8B36A]/40 p-3.5 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={16} className="text-[#C4933D]" />
+            <span className="text-xs font-bold text-[#30231F]">Filters &amp; Refinements</span>
+            {activeFilterCount > 0 && (
+              <span className="bg-[#C4933D] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen((v) => !v)}
+            className="text-xs font-semibold text-[#C4933D] flex items-center gap-1 cursor-pointer bg-[#F5EBDD] px-3 py-1.5 rounded-xl hover:bg-[#D8B36A]/30 transition-colors"
+          >
+            <span>{mobileFiltersOpen ? 'Hide Filters' : 'Filter Designs'}</span>
+            {mobileFiltersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* ─── LEFT SIDEBAR: Collapsible Accordion Filters ─── */}
-          <aside className="lg:col-span-3 space-y-4">
-            <div className="bg-white rounded-2xl border border-[#D8B36A]/40 p-5 shadow-xs space-y-5">
+          <aside className={`lg:col-span-3 space-y-4 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
+            <div className="bg-white rounded-2xl border border-[#D8B36A]/40 p-5 shadow-xs space-y-5 lg:sticky lg:top-24">
               {/* Accordion 1: Filter by Style */}
               <div className="border-b border-[#F5EBDD] pb-4">
                 <button
@@ -718,7 +748,7 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
               <div
                 className={
                   viewMode === 'grid'
-                    ? 'grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5'
+                    ? 'grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5'
                     : 'grid grid-cols-1 sm:grid-cols-2 gap-4'
                 }
               >

@@ -4,7 +4,6 @@ import {
   Search,
   X,
   Menu,
-  MessageCircle,
   Heart,
   MapPin,
   ChevronRight,
@@ -31,17 +30,19 @@ export default function Navbar() {
   const categories = rawCategories.filter((c) => (c.status ? c.status === 'Active' : true))
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
   const { favs } = useFavourites()
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Close mobile sidebar on route change
+  // Close mobile sidebar and search on route change
   const [prevPath, setPrevPath] = useState(location.pathname)
   if (location.pathname !== prevPath) {
     setPrevPath(location.pathname)
     setSidebarOpen(false)
+    setMobileSearchOpen(false)
   }
 
   // Shadow on scroll
@@ -67,8 +68,6 @@ export default function Navbar() {
       setSearchQuery('')
     }
   }
-
-  const waUrl = `https://wa.me/${siteConfig.whatsapp}`
 
   // Helper to determine active state (Collections active on /collections and /collections/*)
   const isLinkActive = (to, exact) => {
@@ -182,8 +181,18 @@ export default function Navbar() {
               })}
             </nav>
 
-            {/* Right: Search Capsule, Wishlist, WhatsApp Button */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Right: Search Capsule, Wishlist */}
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+              {/* Mobile Search Toggle Icon */}
+              <button
+                type="button"
+                onClick={() => setMobileSearchOpen((v) => !v)}
+                aria-label="Toggle mobile search"
+                className="md:hidden p-2 text-[#30231F] hover:text-[#C4933D] rounded-full transition-colors"
+              >
+                <Search size={19} />
+              </button>
+
               {/* Search Capsule Input with dual magnifying glass style */}
               <form
                 onSubmit={handleSearchSubmit}
@@ -221,21 +230,45 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
-
-              {/* Gold WhatsApp Button */}
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Contact on WhatsApp"
-                className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white text-xs font-semibold px-4 sm:px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow"
-              >
-                <MessageCircle size={15} />
-                <span>WhatsApp</span>
-              </a>
             </div>
           </div>
         </div>
+
+        {/* Mobile Search Dropdown Bar */}
+        <AnimatePresence>
+          {mobileSearchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden overflow-hidden bg-[#FFFCF7] border-t border-[#D8B36A]/30 px-4 py-2.5 shadow-xs"
+            >
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex items-center gap-2 bg-white border border-[#D8B36A]/60 rounded-full px-3.5 py-2 shadow-2xs"
+              >
+                <Search size={15} className="text-[#786D63] flex-shrink-0" />
+                <input
+                  type="search"
+                  autoFocus
+                  placeholder="Search bangles, rings, chains..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs bg-transparent outline-none text-[#30231F] placeholder-[#786D63]"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="text-[#786D63] hover:text-[#30231F]"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ─── 3. SIDEBAR NAVIGATION DRAWER (Mobile + Tablet) ─── */}
@@ -346,15 +379,13 @@ export default function Navbar() {
 
               {/* Drawer Footer */}
               <div className="mt-auto p-4 border-t border-[#F5EBDD] bg-[#F5EBDD]/50 space-y-3">
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to="/contact"
+                  onClick={() => setSidebarOpen(false)}
                   className="flex items-center justify-center gap-2 w-full bg-[#C4933D] hover:bg-[#B3832F] text-white text-xs font-semibold py-2.5 px-4 rounded-full transition-colors shadow-sm"
                 >
-                  <MessageCircle size={15} />
-                  <span>Enquire on WhatsApp</span>
-                </a>
+                  <span>Contact Us</span>
+                </Link>
                 <p className="text-[11px] text-[#786D63] text-center">
                   {siteConfig.phone} &bull; {siteConfig.address}
                 </p>

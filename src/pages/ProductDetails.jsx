@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Share2, Link2, Eye, Tag, Scale, Sparkles, CheckCircle2, MessageCircle, ArrowLeft } from 'lucide-react'
+import { Share2, Link2, Eye, Tag, Scale, Sparkles, CheckCircle2, Mail, ArrowLeft } from 'lucide-react'
 import Breadcrumb from '../components/Breadcrumb'
 import ProductGrid from '../components/ProductGrid'
 import ProductLightbox from '../components/ProductLightbox'
 import { useProduct, useRelatedProducts } from '../hooks/useProducts'
 import { getAvailabilityInfo } from '../services/productService'
 import { getCategoryBySlug } from '../data/categories'
-import { buildProductUrl, buildWhatsAppUrl } from '../config/siteConfig'
+import { buildProductUrl } from '../config/siteConfig'
 
 const FALLBACK_IMAGE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23F0E4D0'/%3E%3Ccircle cx='300' cy='280' r='90' fill='none' stroke='%23B68A3A' stroke-width='2' stroke-dasharray='5 5' opacity='0.7'/%3E%3Ctext x='300' y='410' text-anchor='middle' font-family='Georgia,serif' font-size='20' fill='%2325211D' font-weight='600'%3ELakshmanan Gold Works%3C/text%3E%3Ctext x='300' y='440' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236B6560'%3EImage Preview%3C/text%3E%3C/svg%3E"
@@ -94,8 +94,6 @@ export default function ProductDetails() {
     }
   }
 
-  const waUrl = buildWhatsAppUrl(product.name, product.id)
-
   return (
     <div className="min-h-screen bg-[#FBF7F0]">
       {/* ─── Breadcrumb Bar ─── */}
@@ -126,7 +124,7 @@ export default function ProductDetails() {
                 alt={`${product.name} — view ${activeImage + 1}`}
                 onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE }}
                 className="w-full h-full object-contain p-4 sm:p-6 transition-transform duration-500 group-hover:scale-103"
-                fetchpriority="high"
+                fetchPriority="high"
               />
 
               {/* Fullscreen Pill Button */}
@@ -268,15 +266,13 @@ export default function ProductDetails() {
 
             {/* Actions CTA Section */}
             <div className="space-y-3 pt-2">
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-semibold py-4 px-6 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg"
+              <Link
+                to={`/contact?design=${encodeURIComponent(product.name)}`}
+                className="w-full flex items-center justify-center gap-2.5 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold py-4 px-6 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg"
               >
-                <MessageCircle size={18} />
-                <span>Enquire Price & Availability on WhatsApp</span>
-              </a>
+                <Mail size={18} />
+                <span>Enquire About This Design</span>
+              </Link>
 
               <div className="grid grid-cols-2 gap-3">
                 <button

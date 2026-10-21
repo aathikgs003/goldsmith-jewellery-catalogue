@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
-  MessageCircle,
+  Mail,
   Gem,
   HeartHandshake,
   Star,
@@ -24,8 +24,6 @@ export default function About() {
   const scrollToSection = () => {
     showroomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
-
-  const waUrl = `https://wa.me/${(store.whatsapp || siteConfig.whatsapp).replace(/[^0-9]/g, '')}`
 
   return (
     <div className="min-h-screen bg-[#FFFCF7] text-[#30231F]">
@@ -79,15 +77,12 @@ export default function About() {
                   <ArrowRight size={15} />
                 </button>
 
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to="/contact"
                   className="inline-flex items-center gap-2 bg-white/80 hover:bg-white text-[#30231F] hover:text-[#C4933D] border border-[#D8B36A]/50 font-semibold text-xs uppercase tracking-wider px-6 py-3.5 rounded-full transition-all shadow-2xs backdrop-blur-xs"
                 >
-                  <MessageCircle size={15} className="text-[#25D366]" />
-                  <span>Enquire on WhatsApp</span>
-                </a>
+                  <span>Contact Us</span>
+                </Link>
               </div>
             </div>
 
@@ -103,10 +98,10 @@ export default function About() {
               </div>
 
               {/* Floating Circular Seal Medallion ("Tradition in Every Detail") */}
-              <div className="absolute right-3 sm:right-6 lg:right-6 top-1/2 -translate-y-1/2 w-32 h-32 sm:w-36 sm:h-36 rounded-full border border-[#D8B36A]/60 p-1 flex items-center justify-center bg-black/55 backdrop-blur-xs text-center text-white shadow-2xl">
-                <div className="w-full h-full rounded-full border border-dashed border-[#D8B36A]/70 flex flex-col items-center justify-center p-2.5">
+              <div className="absolute right-2 sm:right-6 lg:right-6 top-1/2 -translate-y-1/2 w-24 h-24 sm:w-36 sm:h-36 rounded-full border border-[#D8B36A]/60 p-1 flex items-center justify-center bg-black/55 backdrop-blur-xs text-center text-white shadow-2xl">
+                <div className="w-full h-full rounded-full border border-dashed border-[#D8B36A]/70 flex flex-col items-center justify-center p-1 sm:p-2.5">
                   <span
-                    className="text-xs sm:text-sm font-bold leading-tight"
+                    className="text-[11px] sm:text-sm font-bold leading-tight"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
                     Tradition<br />in Every<br />Detail
@@ -453,16 +448,14 @@ export default function About() {
                 </a>
               </div>
 
-              {/* WhatsApp */}
+              {/* Email */}
               <div className="flex items-center gap-2.5">
-                <MessageCircle size={15} className="text-emerald-600 flex-shrink-0" />
+                <Mail size={15} className="text-[#C4933D] flex-shrink-0" />
                 <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-emerald-700 hover:underline"
+                  href={`mailto:${store.email || siteConfig.email}`}
+                  className="text-xs text-[#30231F] hover:text-[#C4933D] transition-colors"
                 >
-                  {store.whatsapp}
+                  {store.email || siteConfig.email}
                 </a>
               </div>
 

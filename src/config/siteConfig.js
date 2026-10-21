@@ -32,22 +32,13 @@ export const siteConfig = {
 
   // ----- SEO / Meta -----
   siteUrl: 'https://lakshmanangoldworks.com',
-
-  // ----- WhatsApp message template -----
-  whatsappMessageTemplate:
-    'Hello, I am interested in {name} (Design ID: {id}). Please share the price and availability.',
 }
 
 /**
- * Build a pre-filled WhatsApp URL for a product enquiry.
- * @param {string} productName
- * @param {string} productId
+ * Build a WhatsApp chat URL for enquiry.
  */
-export function buildWhatsAppUrl(productName, productId) {
-  const message = siteConfig.whatsappMessageTemplate
-    .replace('{name}', productName)
-    .replace('{id}', productId)
-  return `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(message)}`
+export function buildWhatsAppUrl() {
+  return `https://wa.me/${siteConfig.whatsapp}`
 }
 
 /**

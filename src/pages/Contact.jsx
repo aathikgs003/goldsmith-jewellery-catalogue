@@ -3,7 +3,7 @@ import {
   MapPin,
   Phone,
   Clock,
-  MessageCircle,
+  Mail,
   Sparkles,
   Navigation,
   Send,
@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { useAdmin } from '../context/AdminContext'
 import { siteConfig } from '../config/siteConfig'
-import WhatsAppButton from '../components/WhatsAppButton'
 
 export default function Contact() {
   const { websiteContent, storeDetails, addEnquiry } = useAdmin()
@@ -32,9 +31,6 @@ export default function Contact() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [enquiryId, setEnquiryId] = useState('')
-
-  const rawPhone = contactData.whatsapp || store.whatsapp || siteConfig.whatsapp
-  const waUrl = `https://wa.me/${rawPhone.replace(/[^0-9]/g, '')}`
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -156,31 +152,29 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Card 2: WhatsApp Desk */}
+          {/* Card 2: Email Desk */}
           <div className="bg-white rounded-2xl border border-[#D8B36A]/40 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
             <div className="space-y-3">
-              <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-[#25D366] group-hover:text-white transition-colors">
-                <MessageCircle size={22} />
+              <div className="w-11 h-11 rounded-xl bg-[#F5EBDD] flex items-center justify-center text-[#C4933D] group-hover:bg-[#351016] group-hover:text-[#D8B36A] transition-colors">
+                <Mail size={20} />
               </div>
               <h3
                 className="font-bold text-base text-[#30231F]"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                WhatsApp Consultation
+                Email Consultation
               </h3>
               <p className="text-xs text-[#786D63] leading-relaxed">
-                Connect instantly for live photo previews, bullion rates, weight breakdowns, and bespoke orders.
+                Connect for bullion rates, weight breakdowns, custom design enquiries, and quotations.
               </p>
             </div>
             <div className="pt-4 mt-2 border-t border-[#D8B36A]/20">
               <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                href={`mailto:${store.email || siteConfig.email}`}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#30231F] bg-[#F5EBDD] hover:bg-[#D8B36A]/30 px-3 py-1.5 rounded-lg border border-[#D8B36A]/40 transition-colors"
               >
-                <MessageCircle size={13} />
-                <span>Chat on WhatsApp</span>
+                <Mail size={13} className="text-[#C4933D]" />
+                <span>{store.email || siteConfig.email}</span>
               </a>
             </div>
           </div>
@@ -276,21 +270,9 @@ export default function Contact() {
                 </p>
 
                 <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-                  <a
-                    href={`https://wa.me/${(store.whatsapp || siteConfig.whatsapp).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                      `Namaste Lakshmanan Gold Works, I submitted an enquiry (ID: ${enquiryId}) for ${formData.category}. Looking forward to connecting!`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1eb858] text-white px-5 py-2.5 rounded-full text-xs font-semibold transition-all shadow-sm"
-                  >
-                    <MessageCircle size={15} />
-                    <span>Also Send on WhatsApp</span>
-                  </a>
-
                   <button
                     onClick={handleReset}
-                    className="px-5 py-2.5 rounded-full bg-[#F5EBDD] hover:bg-[#D8B36A]/30 text-[#30231F] text-xs font-semibold transition-colors"
+                    className="px-6 py-2.5 rounded-full bg-[#C4933D] hover:bg-[#B3832F] text-white text-xs font-semibold transition-colors shadow-sm"
                   >
                     Submit Another Enquiry
                   </button>
@@ -317,7 +299,7 @@ export default function Contact() {
                   {/* Contact / Phone */}
                   <div>
                     <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
-                      WhatsApp / Phone <span className="text-rose-500">*</span>
+                      Phone Number <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -517,10 +499,13 @@ export default function Contact() {
                 </p>
 
                 <div className="pt-2">
-                  <WhatsAppButton
-                    label={contactData.consultationButton || 'Book WhatsApp Consultation'}
-                    size="md"
-                  />
+                  <a
+                    href={`tel:${(store.phone || siteConfig.phone).replace(/[^0-9+]/g, '')}`}
+                    className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white px-6 py-3 rounded-full text-xs font-semibold uppercase tracking-wider transition-all shadow-md cursor-pointer"
+                  >
+                    <Phone size={14} />
+                    <span>{contactData.consultationButton && contactData.consultationButton !== 'Book WhatsApp Consultation' ? contactData.consultationButton : 'Book Consultation'}</span>
+                  </a>
                 </div>
               </div>
             </div>

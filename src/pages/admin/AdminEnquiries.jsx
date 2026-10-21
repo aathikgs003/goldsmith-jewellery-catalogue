@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   MessageSquare,
-  MessageCircle,
+  Phone,
   Trash2,
   CheckCircle2,
   Clock,
@@ -73,7 +73,7 @@ export default function AdminEnquiries() {
             Customer Enquiries
           </h1>
           <p className="text-xs sm:text-sm text-[#786D63] mt-1">
-            Browse and respond to customer WhatsApp and product design requests
+            Browse and respond to customer jewellery and product design requests
           </p>
         </div>
 
@@ -150,9 +150,6 @@ export default function AdminEnquiries() {
               {filteredEnquiries.map((enq) => {
                 const isPending = enq.status === 'Pending'
                 const cleanPhone = enq.contact?.replace(/[^0-9]/g, '')
-                const waUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(
-                  `Namaste ${enq.name}, thank you for contacting Lakshmanan Gold Works regarding ${enq.design || 'jewellery'}. How can we assist you today?`
-                )}`
 
                 return (
                   <tr
@@ -170,13 +167,11 @@ export default function AdminEnquiries() {
                     {/* Contact */}
                     <td className="py-3.5 px-4 sm:px-6">
                       <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200 transition-colors"
-                        title="Chat on WhatsApp"
+                        href={`tel:${cleanPhone}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#30231F] hover:text-[#C4933D] bg-[#F5EBDD] hover:bg-[#D8B36A]/30 px-2.5 py-1 rounded-md border border-[#D8B36A]/40 transition-colors"
+                        title="Call Customer"
                       >
-                        <MessageCircle size={13} className="text-emerald-600" />
+                        <Phone size={12} className="text-[#C4933D]" />
                         <span>{enq.contact}</span>
                       </a>
                     </td>
@@ -225,14 +220,12 @@ export default function AdminEnquiries() {
                     <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-2">
                         <a
-                          href={waUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 bg-[#25D366] hover:bg-[#1eb858] text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                          title="Reply on WhatsApp"
+                          href={`tel:${cleanPhone}`}
+                          className="inline-flex items-center gap-1 bg-[#351016] hover:bg-[#45151D] text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          title="Call Customer"
                         >
-                          <MessageCircle size={14} />
-                          <span className="hidden sm:inline">Reply</span>
+                          <Phone size={13} />
+                          <span className="hidden sm:inline">Call</span>
                         </a>
                         <button
                           onClick={() => handleDelete(enq.id, enq.name)}

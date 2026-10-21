@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
-  MessageCircle,
+  Mail,
   Gem,
   ShieldCheck,
   ChevronLeft,
@@ -32,7 +32,7 @@ export default function Home() {
     subtitle:
       'Explore our exclusive collection of traditional and contemporary gold jewellery designs for every occasion.',
     primaryButton: 'Explore Collections',
-    secondaryButton: 'Enquire on WhatsApp',
+    secondaryButton: 'Contact Us',
     image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85',
   }
   const newArrivalsBanner = websiteContent?.homeNewArrivals || {
@@ -79,8 +79,6 @@ export default function Home() {
   const handlePrev = () => setCarouselIndex((i) => Math.max(0, i - 1))
   const handleNext = () => setCarouselIndex((i) => Math.min(maxIndex, i + 1))
 
-  const waUrl = `https://wa.me/${siteConfig.whatsapp}`
-
   return (
     <div className="bg-[#FFFCF7] text-[#30231F]">
       {/* ─────────────────────────────────────────────────────────────────── */}
@@ -95,7 +93,7 @@ export default function Home() {
           <img
             src={heroData.image}
             alt="Lakshmanan Gold Works Hero Banner"
-            fetchpriority="high"
+            fetchPriority="high"
             className="w-full h-full object-cover object-center brightness-95"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1A110D] via-[#1A110D]/50 to-transparent lg:via-[#1A110D]/30" />
@@ -137,55 +135,56 @@ export default function Home() {
                 <ArrowRight size={14} />
               </Link>
 
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/contact"
                 className="inline-flex items-center gap-2 bg-black/25 hover:bg-white/10 border border-white/40 text-white font-semibold text-xs uppercase tracking-wider px-6 py-3.5 rounded-full transition-all backdrop-blur-xs"
               >
-                <MessageCircle size={15} />
-                <span>{heroData.secondaryButton || 'Enquire on WhatsApp'}</span>
-              </a>
+                <span>
+                  {heroData.secondaryButton && heroData.secondaryButton !== 'Enquire on WhatsApp'
+                    ? heroData.secondaryButton
+                    : 'Contact Us'}
+                </span>
+              </Link>
             </div>
 
             {/* 3 Badges with 2-line layout and dividers matching reference */}
-            <div className="pt-6 border-t border-white/15 flex items-center gap-4 sm:gap-6 text-xs text-white/90">
+            <div className="pt-6 border-t border-white/15 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-6 text-xs text-white/90">
               {/* Badge 1 */}
-              <div className="flex items-center gap-2.5">
-                <Gem size={20} className="text-[#D8B36A] flex-shrink-0" />
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <Gem size={18} className="text-[#D8B36A] flex-shrink-0" />
                 <div className="text-left leading-tight">
                   <div className="text-xs sm:text-sm font-semibold text-white">Premium</div>
-                  <div className="text-[11px] sm:text-xs text-white/70">Craftsmanship</div>
+                  <div className="text-[10px] sm:text-xs text-white/70">Craftsmanship</div>
                 </div>
               </div>
 
               {/* Vertical divider */}
-              <div className="h-7 w-[1px] bg-white/20" />
+              <div className="h-7 w-[1px] bg-white/20 hidden xs:block" />
 
               {/* Badge 2 */}
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck size={20} className="text-[#D8B36A] flex-shrink-0" />
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <ShieldCheck size={18} className="text-[#D8B36A] flex-shrink-0" />
                 <div className="text-left leading-tight">
                   <div className="text-xs sm:text-sm font-semibold text-white">Trusted</div>
-                  <div className="text-[11px] sm:text-xs text-white/70">Quality</div>
+                  <div className="text-[10px] sm:text-xs text-white/70">Quality</div>
                 </div>
               </div>
 
               {/* Vertical divider */}
-              <div className="h-7 w-[1px] bg-white/20" />
+              <div className="h-7 w-[1px] bg-white/20 hidden xs:block" />
 
               {/* Badge 3 */}
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2 sm:gap-2.5">
                 <svg
                   viewBox="0 0 24 24"
-                  className="w-5 h-5 text-[#D8B36A] stroke-current fill-none stroke-[1.8] flex-shrink-0"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-[#D8B36A] stroke-current fill-none stroke-[1.8] flex-shrink-0"
                 >
                   <path d="M12 3c1.5 3 4 5 7 5-2 3-4 6-7 13-3-7-5-10-7-13 3 0 5.5-2 7-5z" />
                   <path d="M12 9c.8 1.8 2.5 3 4.5 3-1.2 2-2.5 4-4.5 8-2-4-3.3-6-4.5-8 2 0 3.7-1.2 4.5-3z" />
                 </svg>
                 <div className="text-left leading-tight">
                   <div className="text-xs sm:text-sm font-semibold text-white">Custom</div>
-                  <div className="text-[11px] sm:text-xs text-white/70">Designs</div>
+                  <div className="text-[10px] sm:text-xs text-white/70">Designs</div>
                 </div>
               </div>
             </div>
@@ -286,7 +285,7 @@ export default function Home() {
               onClick={handlePrev}
               disabled={carouselIndex === 0}
               aria-label="Previous featured designs"
-              className="hidden sm:flex absolute -left-4 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] disabled:opacity-40 disabled:pointer-events-none transition-all"
+              className="flex absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer"
             >
               <ChevronLeft size={18} />
             </button>
@@ -294,7 +293,7 @@ export default function Home() {
             {/* Cards Grid: 4 items at a time */}
             <div
               ref={carouselContainerRef}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
+              className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6"
             >
               {featuredProducts.slice(carouselIndex, carouselIndex + 4).map((product) => (
                 <ProductCard
@@ -312,7 +311,7 @@ export default function Home() {
               onClick={handleNext}
               disabled={carouselIndex >= maxIndex}
               aria-label="Next featured designs"
-              className="hidden sm:flex absolute -right-4 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] disabled:opacity-40 disabled:pointer-events-none transition-all"
+              className="flex absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer"
             >
               <ChevronRight size={18} />
             </button>
@@ -427,15 +426,17 @@ export default function Home() {
               </p>
 
               <div className="pt-2">
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to="/contact"
                   className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
                 >
-                  <span>{customBanner.buttonText}</span>
+                  <span>
+                    {customBanner.buttonText && customBanner.buttonText !== 'Start Custom Design on WhatsApp'
+                      ? customBanner.buttonText
+                      : 'Request Custom Design'}
+                  </span>
                   <ArrowRight size={14} />
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -643,20 +644,18 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* WhatsApp */}
+                {/* Email */}
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#F5EBDD] flex items-center justify-center text-[#C4933D] flex-shrink-0 mt-0.5">
-                    <MessageCircle size={15} />
+                    <Mail size={15} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-[#30231F]">WhatsApp</h4>
+                    <h4 className="text-xs font-bold text-[#30231F]">Email</h4>
                     <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[#786D63] hover:text-[#C4933D] font-mono mt-0.5 block"
+                      href={`mailto:${siteConfig.email}`}
+                      className="text-xs text-[#786D63] hover:text-[#C4933D] mt-0.5 block"
                     >
-                      {siteConfig.phone}
+                      {siteConfig.email}
                     </a>
                   </div>
                 </div>

@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom'
-import { MessageCircle, MapPin, Phone, Mail } from 'lucide-react'
+import { MapPin, Phone, Mail } from 'lucide-react'
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from './SocialIcons'
 import { siteConfig } from '../config/siteConfig'
 import { categories } from '../data/categories'
 import BrandLogo from './BrandLogo'
 
 export default function Footer() {
-  const waUrl = `https://wa.me/${siteConfig.whatsapp}`
-
   return (
     <footer className="bg-[#351016] text-[#FFFCF7] border-t border-[#45151D] relative overflow-hidden">
       {/* Subtle Ornamental Mandala Watermark in Footer Corner */}
@@ -24,7 +22,7 @@ export default function Footer() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-14 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 text-left relative z-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 text-left relative z-10">
         {/* Col 1: Brand & Bio */}
         <div className="space-y-4">
           <BrandLogo variant="light" />
@@ -115,7 +113,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Col 4: Contact Us & WhatsApp Us Button */}
+        {/* Col 4: Contact Us */}
         <div className="space-y-4">
           <h4
             className="text-sm font-bold text-white mb-4 tracking-wider uppercase"
@@ -146,15 +144,12 @@ export default function Footer() {
           </div>
 
           <div className="pt-2">
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/contact"
               className="inline-flex items-center justify-center gap-2 w-full bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold py-2.5 px-4 rounded-full text-xs transition-colors shadow-sm"
             >
-              <MessageCircle size={15} />
-              <span>WhatsApp Us</span>
-            </a>
+              <span>Get in Touch</span>
+            </Link>
           </div>
         </div>
       </div>

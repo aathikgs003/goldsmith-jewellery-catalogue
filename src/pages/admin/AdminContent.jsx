@@ -28,7 +28,7 @@ export default function AdminContent() {
       websiteContent.hero?.subtitle ||
       'Explore our exclusive collection of traditional and contemporary gold jewellery designs for every occasion.',
     primaryButton: websiteContent.hero?.primaryButton || 'Explore Collections',
-    secondaryButton: websiteContent.hero?.secondaryButton || 'Enquire on WhatsApp',
+    secondaryButton: websiteContent.hero?.secondaryButton || 'Contact Us',
     image:
       websiteContent.hero?.image ||
       'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85',
@@ -121,7 +121,7 @@ export default function AdminContent() {
       websiteContent.contact?.consultationSubtitle ||
       'Planning a wedding or bespoke heirloom? Book an exclusive in-person consultation with our master goldsmith for weight estimates, hallmark certification, and custom design drawings.',
     consultationButton:
-      websiteContent.contact?.consultationButton || 'Book WhatsApp Consultation',
+      websiteContent.contact?.consultationButton || 'Book In-Store Consultation',
   })
 
   // ─── 4. Custom Design Form ───
@@ -131,14 +131,14 @@ export default function AdminContent() {
     subtitle:
       websiteContent.customDesign?.subtitle ||
       'Have a reference sketch, family photograph, or unique vision? Our master goldsmith will craft your one-of-a-kind gold piece with 916 BIS hallmarked purity.',
-    buttonText: websiteContent.customDesign?.buttonText || 'Start Custom Design on WhatsApp',
+    buttonText: websiteContent.customDesign?.buttonText || 'Request Custom Design',
     image:
       websiteContent.customDesign?.image ||
       'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1200&q=80',
     step1Title: websiteContent.customDesign?.step1Title || 'Share Your Idea',
     step1Desc:
       websiteContent.customDesign?.step1Desc ||
-      'Send a sketch, photo, or explain your idea directly over WhatsApp or in-person.',
+      'Send a sketch, photo, or explain your idea directly to our goldsmith or in-person.',
     step2Title: websiteContent.customDesign?.step2Title || 'Goldsmith Consultation',
     step2Desc:
       websiteContent.customDesign?.step2Desc ||
@@ -151,9 +151,6 @@ export default function AdminContent() {
     step4Desc:
       websiteContent.customDesign?.step4Desc ||
       'Certified 916 hallmarked gold, perfectly packaged and ready for your occasion.',
-    whatsappPrompt:
-      websiteContent.customDesign?.whatsappPrompt ||
-      'Namaste Lakshmanan Gold Works, I would like to consult with the master goldsmith for a custom jewellery order.',
   })
 
   const showToast = (msg) => {
@@ -453,7 +450,7 @@ export default function AdminContent() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                        Secondary WhatsApp CTA
+                        Secondary CTA Button Text
                       </label>
                       <input
                         type="text"
@@ -1054,7 +1051,7 @@ export default function AdminContent() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                  WhatsApp Direct Number (e.g. 919344894659)
+                  Direct Contact Phone (e.g. 919344894659)
                 </label>
                 <input
                   type="text"
@@ -1130,7 +1127,7 @@ export default function AdminContent() {
             <div>
               <h2 className="text-base font-bold text-[#30231F]">Custom Design & Bespoke Jewellery</h2>
               <p className="text-xs text-[#786D63]">
-                Manage bespoke orders headline, 4 craftsmanship process steps, and WhatsApp consultation message
+                Manage bespoke orders headline and 4 craftsmanship process steps
               </p>
             </div>
             <button
@@ -1313,24 +1310,6 @@ export default function AdminContent() {
                   className="w-full px-2.5 py-1.5 rounded-md border border-[#D8B36A]/40 text-xs bg-white resize-none"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* WhatsApp Prompt */}
-          <div className="bg-white rounded-xl border border-[#D8B36A]/40 p-6 space-y-4 shadow-xs">
-            <h3 className="text-base font-bold text-[#30231F] border-b border-[#D8B36A]/30 pb-2">
-              3. WhatsApp Pre-filled Custom Order Greeting
-            </h3>
-            <div>
-              <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                WhatsApp Message Template (Auto-filled when customer clicks custom design CTA)
-              </label>
-              <textarea
-                rows={2}
-                value={customForm.whatsappPrompt}
-                onChange={(e) => setCustomForm({ ...customForm, whatsappPrompt: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7] font-sans"
-              />
             </div>
           </div>
         </form>
