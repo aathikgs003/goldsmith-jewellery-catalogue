@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, Lock, Mail, ArrowLeft, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, Loader2, Info } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
+import { supabase } from '../../lib/supabase'
 import BrandLogo from '../../components/BrandLogo'
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('surinathan770@gmail.com')
-  const [password, setPassword] = useState('admin123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { login, isSupabaseConfigured } = useAdmin()
   const navigate = useNavigate()
@@ -17,25 +19,47 @@ export default function AdminLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setInfoMessage('')
+    if (!email.trim() || !password) {
+      setError('Please enter both email and password.')
+      return
+    }
     setIsSubmitting(true)
     try {
-      const res = await login(email, password)
+      const res = await login(email.trim(), password)
       if (res.success) {
         navigate('/admin')
       } else {
-        setError(res.error || 'Invalid email or password')
+        setError(res.error || 'Invalid email or password.')
       }
     } catch (err) {
-      setError(err.message || 'An unexpected error occurred during login')
+      setError(err.message || 'An unexpected error occurred during login.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDemoFill = () => {
-    setEmail('surinathan770@gmail.com')
-    setPassword('admin123')
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError('Please enter your admin email above first, then click "Forgot password?".')
+      return
+    }
     setError('')
+    setInfoMessage('')
+    if (isSupabaseConfigured) {
+      try {
+        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email.trim())
+        if (resetErr) {
+          setError(resetErr.message)
+        } else {
+          setInfoMessage('Password reset link sent to your registered email.')
+        }
+      } catch (err) {
+        setError(err.message || 'Could not send reset link.')
+      }
+    } else {
+      setInfoMessage('For offline development, please check your environment variables or Supabase dashboard.')
+    }
   }
 
   return (
@@ -67,13 +91,13 @@ export default function AdminLogin() {
         <span>Back to Store</span>
       </Link>
 
-      {/* Main Login Card matching Screenshot 1 */}
+      {/* Main Login Card */}
       <div className="w-full max-w-[420px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-[#D8B36A]/40 relative z-10">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <BrandLogo variant="dark" />
-          <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#C4933D] mt-2">
-            Admin Panel
+          <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#C4933D] mt-3">
+            Admin Portal
           </span>
         </div>
 
@@ -83,20 +107,28 @@ export default function AdminLogin() {
           </div>
         )}
 
+        {infoMessage && (
+          <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+            <Info size={16} className="text-emerald-600 shrink-0" />
+            <span>{infoMessage}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email field */}
           <div>
             <label className="block text-xs font-semibold text-[#30231F] mb-1.5">
-              Email
+              Email Address
             </label>
             <div className="relative flex items-center">
               <Mail size={16} className="absolute left-3.5 text-[#786D63] pointer-events-none" />
               <input
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="surinathan770@gmail.com"
+                placeholder="Enter your email"
                 className="w-full text-xs bg-[#FFFCF7] border border-[#D8B36A]/50 focus:border-[#C4933D] rounded-xl pl-10 pr-3.5 py-3 outline-none text-[#30231F] transition-colors"
               />
             </div>
@@ -112,6 +144,7 @@ export default function AdminLogin() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -121,6 +154,7 @@ export default function AdminLogin() {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-3.5 text-[#786D63] hover:text-[#30231F] transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -141,8 +175,8 @@ export default function AdminLogin() {
 
             <button
               type="button"
-              onClick={handleDemoFill}
-              className="text-[#C4933D] hover:underline font-medium text-[11px]"
+              onClick={handleForgotPassword}
+              className="text-[#C4933D] hover:underline font-medium text-[11px] cursor-pointer"
             >
               Forgot password?
             </button>
@@ -158,18 +192,6 @@ export default function AdminLogin() {
             <span>{isSubmitting ? 'Signing In...' : 'Login'}</span>
           </button>
         </form>
-
-        {/* Demo Credentials Helper Pill */}
-        <div className="mt-6 pt-5 border-t border-[#F5EBDD] text-center">
-          <p className="text-[11px] text-[#786D63]">
-            {isSupabaseConfigured
-              ? 'Supabase Auth Mode (or fallback demo account):'
-              : 'Default Demo Credentials:'}
-          </p>
-          <div className="inline-block mt-1 bg-[#F5EBDD]/70 px-3 py-1 rounded-lg text-xs font-mono text-[#30231F]">
-            surinathan770@gmail.com / admin123
-          </div>
-        </div>
       </div>
     </div>
   )

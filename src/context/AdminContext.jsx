@@ -229,35 +229,31 @@ export function AdminProvider({ children }) {
           return { success: true }
         }
 
-        // If Supabase returned an authentication error, return the actual error message
-        if (error) {
-          console.warn('Supabase auth attempt failed, checking fallback credentials:', error.message)
+        setAuthLoading(false)
+        return {
+          success: false,
+          error: error?.message || 'Invalid email or password.',
         }
       }
 
-      // 2. Fallback local/demo credentials
-      const validEmails = ['surinathan770@gmail.com', 'admin@gmail.com']
+      // 2. Fallback offline development credentials (only when Supabase keys are not set in .env.local)
+      const fallbackEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'surinathan770@gmail.com').toLowerCase().trim()
+      const fallbackPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Suri@003*'
+
       if (
-        validEmails.includes(email.trim().toLowerCase()) &&
-        (password === 'admin123' || password === 'admin' || password.length >= 4)
+        email.trim().toLowerCase() === fallbackEmail &&
+        password === fallbackPassword
       ) {
         setIsAuthenticated(true)
         localStorage.setItem('slgw_admin_auth', 'true')
         setAuthLoading(false)
-        return {
-          success: true,
-          warning: isSupabaseConfigured
-            ? 'Logged in with local demo credentials. For live database writes, create an admin user in Supabase Authentication.'
-            : undefined,
-        }
+        return { success: true }
       }
 
       setAuthLoading(false)
       return {
         success: false,
-        error: isSupabaseConfigured
-          ? 'Invalid credentials. Please verify your email and password in Supabase Auth.'
-          : 'Invalid email or password. Use surinathan770@gmail.com / admin123',
+        error: 'Invalid email or password.',
       }
     } catch (err) {
       setAuthLoading(false)
