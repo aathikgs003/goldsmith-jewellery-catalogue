@@ -1,70 +1,60 @@
+/**
+ * supabaseService.js — Database & Storage helpers for Supabase integration.
+ * Lakshmanan Gold Works Jewellery Catalogue.
+ */
+
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
-// ─── Transformers ─────────────────────────────────────────────────────────────
+// ─── Data Transformers ────────────────────────────────────────────────────────
 
 export function mapProductFromRow(row) {
   if (!row) return null
-
-  let parsedImages = []
-  if (Array.isArray(row.images)) {
-    parsedImages = row.images
-  } else if (typeof row.images === 'string') {
-    try {
-      const parsed = JSON.parse(row.images)
-      parsedImages = Array.isArray(parsed) ? parsed : [row.images]
-    } catch {
-      parsedImages = row.images ? [row.images] : []
-    }
-  }
-
   return {
     id: row.id,
-    slug: row.slug || row.id?.toLowerCase(),
+    slug: row.slug || row.id,
     name: row.name,
     category: row.category || 'bangles',
     style: row.style || 'traditional',
     occasion: row.occasion || 'Wedding',
     weightRange: row.weight_range || '',
     description: row.description || '',
-    images: parsedImages.length > 0 ? parsedImages : [
-      'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80',
-    ],
+    images: Array.isArray(row.images) && row.images.length > 0
+      ? row.images
+      : ['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80'],
     price: row.price !== null && row.price !== undefined ? Number(row.price) : null,
     weight: row.weight || '15.0g',
     purity: row.purity || '22 KT',
     availability: row.availability || 'In Stock',
-    status: row.status || (row.published === false ? 'Inactive' : 'Active'),
-    featured: Boolean(row.featured),
-    newArrival: Boolean(row.new_arrival),
+    status: row.status || 'Active',
+    featured: Boolean(row.featured ?? true),
+    newArrival: Boolean(row.new_arrival ?? false),
     displayOrder: Number(row.display_order ?? 0),
-    published: row.published !== false && row.status !== 'Inactive',
+    published: Boolean(row.published ?? true),
     createdAt: row.created_at || new Date().toISOString(),
   }
 }
 
 export function mapProductToRow(prod) {
-  const images = Array.isArray(prod.images) ? prod.images.filter(Boolean) : []
-  const isPublished = prod.published !== false && prod.status !== 'Inactive'
-
+  const rawId = prod.id || prod.slug || `DSG-${Date.now()}`
   return {
-    id: prod.id,
-    slug: prod.slug || prod.id.toLowerCase(),
+    id: String(rawId).trim(),
+    slug: String(prod.slug || rawId).toLowerCase().trim(),
     name: prod.name,
     category: prod.category || 'bangles',
     style: prod.style || 'traditional',
     occasion: prod.occasion || 'Wedding',
     weight_range: prod.weightRange || prod.weight_range || '',
     description: prod.description || '',
-    images: images,
-    price: prod.price !== null && prod.price !== undefined && prod.price !== '' ? Number(prod.price) : null,
+    images: Array.isArray(prod.images) ? prod.images : [],
+    price: prod.price !== null && prod.price !== undefined ? Number(prod.price) : null,
     weight: prod.weight || '15.0g',
     purity: prod.purity || '22 KT',
     availability: prod.availability || 'In Stock',
     status: prod.status || 'Active',
-    featured: Boolean(prod.featured),
-    new_arrival: Boolean(prod.newArrival ?? prod.new_arrival),
+    featured: Boolean(prod.featured ?? true),
+    new_arrival: Boolean(prod.newArrival ?? prod.new_arrival ?? false),
     display_order: Number(prod.displayOrder ?? prod.display_order ?? 0),
-    published: isPublished,
+    published: prod.status !== 'Inactive' && (prod.published !== false),
     updated_at: new Date().toISOString(),
   }
 }
@@ -72,8 +62,8 @@ export function mapProductToRow(prod) {
 export function mapCategoryFromRow(row) {
   if (!row) return null
   return {
-    id: row.slug || row.id,
-    slug: row.slug || row.id,
+    id: row.slug || String(row.id),
+    slug: row.slug || String(row.id),
     name: row.name,
     description: row.description || '',
     image: row.image || 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80',
@@ -85,7 +75,10 @@ export function mapCategoryFromRow(row) {
 }
 
 export function mapCategoryToRow(cat) {
-  const slug = cat.slug || cat.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const slug = (cat.slug || cat.name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
   return {
     id: slug,
     slug: slug,
@@ -110,13 +103,13 @@ const STORAGE_BUCKET = 'jewellery-images'
 export async function uploadJewelleryImage(file, folder = 'products') {
   if (!isSupabaseConfigured) {
     throw new Error(
-      'Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env.local.'
+      'Supabase is not configured on this deployment. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your Vercel Environment Variables.'
     )
   }
 
   // Generate safe, unique filename
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const baseName = file.name
+  const ext = file.name?.split('.').pop()?.toLowerCase() || 'jpg'
+  const baseName = (file.name || 'image')
     .replace(/\.[^/.]+$/, '')
     .replace(/[^a-zA-Z0-9_-]/g, '_')
     .slice(0, 30)
@@ -131,12 +124,13 @@ export async function uploadJewelleryImage(file, folder = 'products') {
 
   if (error) {
     console.error('Supabase Storage upload error:', error)
-    throw error
+    throw new Error(error.message || 'Image upload failed in Supabase Storage')
   }
 
+  const filePath = data?.path || uniquePath
   const { data: urlData } = supabase.storage
     .from(STORAGE_BUCKET)
-    .getPublicUrl(data.path)
+    .getPublicUrl(filePath)
 
   return urlData.publicUrl
 }
@@ -148,85 +142,96 @@ export async function fetchProductsFromSupabase() {
     return null
   }
 
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .order('created_at', { ascending: false })
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
 
-  if (error) {
-    console.error('Error fetching products from Supabase:', error)
-    throw error
+    if (error) {
+      console.error('Error fetching products from Supabase:', error)
+      throw new Error(error.message || 'Failed to fetch products')
+    }
+
+    const list = (data || []).map(mapProductFromRow).filter(Boolean)
+    list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    return list
+  } catch (err) {
+    console.error('fetchProductsFromSupabase failed:', err)
+    throw err
   }
-
-  return (data || []).map(mapProductFromRow)
 }
 
 export async function insertProductToSupabase(product) {
   if (!isSupabaseConfigured) return product
 
   const row = mapProductToRow(product)
-  const { data, error } = await supabase
+
+  // 1. Try upsert on id
+  let result = await supabase
     .from('products')
     .upsert(row, { onConflict: 'id' })
     .select()
-    .single()
 
-  if (error) {
-    console.error('Error creating product in Supabase:', error)
-    throw error
+  // 2. If failed, fallback to plain insert
+  if (result.error) {
+    console.warn('Upsert on id failed, trying insert:', result.error.message)
+    result = await supabase.from('products').insert([row]).select()
   }
 
-  return mapProductFromRow(data)
+  if (result.error) {
+    console.error('Product insert failed in Supabase:', result.error)
+    throw new Error(result.error.message || 'Database error creating product')
+  }
+
+  const savedRow = Array.isArray(result.data) ? result.data[0] : result.data
+  return savedRow ? mapProductFromRow(savedRow) : product
 }
 
 export async function updateProductInSupabase(id, fields) {
   if (!isSupabaseConfigured) return fields
 
-  // Create partial update payload
-  const updatePayload = {}
-  if (fields.name !== undefined) updatePayload.name = fields.name
-  if (fields.slug !== undefined) updatePayload.slug = fields.slug
-  if (fields.category !== undefined) updatePayload.category = fields.category
-  if (fields.style !== undefined) updatePayload.style = fields.style
-  if (fields.occasion !== undefined) updatePayload.occasion = fields.occasion
+  const row = {}
+  if (fields.name !== undefined) row.name = fields.name
+  if (fields.slug !== undefined) row.slug = fields.slug
+  if (fields.category !== undefined) row.category = fields.category
+  if (fields.style !== undefined) row.style = fields.style
+  if (fields.occasion !== undefined) row.occasion = fields.occasion
   if (fields.weightRange !== undefined || fields.weight_range !== undefined) {
-    updatePayload.weight_range = fields.weightRange ?? fields.weight_range
+    row.weight_range = fields.weightRange ?? fields.weight_range
   }
-  if (fields.description !== undefined) updatePayload.description = fields.description
-  if (fields.images !== undefined) updatePayload.images = fields.images
-  if (fields.price !== undefined) {
-    updatePayload.price = fields.price !== null && fields.price !== '' ? Number(fields.price) : null
-  }
-  if (fields.weight !== undefined) updatePayload.weight = fields.weight
-  if (fields.purity !== undefined) updatePayload.purity = fields.purity
-  if (fields.availability !== undefined) updatePayload.availability = fields.availability
+  if (fields.description !== undefined) row.description = fields.description
+  if (fields.images !== undefined) row.images = fields.images
+  if (fields.price !== undefined) row.price = fields.price ? Number(fields.price) : null
+  if (fields.weight !== undefined) row.weight = fields.weight
+  if (fields.purity !== undefined) row.purity = fields.purity
+  if (fields.availability !== undefined) row.availability = fields.availability
   if (fields.status !== undefined) {
-    updatePayload.status = fields.status
-    updatePayload.published = fields.status !== 'Inactive'
+    row.status = fields.status
+    row.published = fields.status !== 'Inactive'
   }
-  if (fields.featured !== undefined) updatePayload.featured = Boolean(fields.featured)
+  if (fields.featured !== undefined) row.featured = Boolean(fields.featured)
   if (fields.newArrival !== undefined || fields.new_arrival !== undefined) {
-    updatePayload.new_arrival = Boolean(fields.newArrival ?? fields.new_arrival)
+    row.new_arrival = Boolean(fields.newArrival ?? fields.new_arrival)
   }
   if (fields.displayOrder !== undefined || fields.display_order !== undefined) {
-    updatePayload.display_order = Number(fields.displayOrder ?? fields.display_order)
+    row.display_order = Number(fields.displayOrder ?? fields.display_order)
   }
-  if (fields.published !== undefined) updatePayload.published = Boolean(fields.published)
-  updatePayload.updated_at = new Date().toISOString()
+  if (fields.published !== undefined) row.published = Boolean(fields.published)
+  row.updated_at = new Date().toISOString()
 
   const { data, error } = await supabase
     .from('products')
-    .update(updatePayload)
+    .update(row)
     .eq('id', id)
     .select()
-    .single()
 
   if (error) {
     console.error('Error updating product in Supabase:', error)
-    throw error
+    throw new Error(error.message || 'Database error updating product')
   }
 
-  return mapProductFromRow(data)
+  const updatedRow = Array.isArray(data) ? data[0] : data
+  return updatedRow ? mapProductFromRow(updatedRow) : fields
 }
 
 export async function deleteProductFromSupabase(id) {
@@ -239,7 +244,7 @@ export async function deleteProductFromSupabase(id) {
 
   if (error) {
     console.error('Error deleting product from Supabase:', error)
-    throw error
+    throw new Error(error.message || 'Database error deleting product')
   }
 
   return true
@@ -252,35 +257,61 @@ export async function fetchCategoriesFromSupabase() {
     return null
   }
 
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('display_order', { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
 
-  if (error) {
-    console.error('Error fetching categories from Supabase:', error)
-    throw error
+    if (error) {
+      console.error('Error fetching categories from Supabase:', error)
+      throw new Error(error.message || 'Failed to fetch categories')
+    }
+
+    const list = (data || []).map(mapCategoryFromRow).filter(Boolean)
+    list.sort((a, b) => Number(a.displayOrder || 0) - Number(b.displayOrder || 0))
+    return list
+  } catch (err) {
+    console.error('fetchCategoriesFromSupabase failed:', err)
+    throw err
   }
-
-  return (data || []).map(mapCategoryFromRow)
 }
 
 export async function insertCategoryToSupabase(category) {
   if (!isSupabaseConfigured) return category
 
   const row = mapCategoryToRow(category)
-  const { data, error } = await supabase
+
+  // 1. Try upsert on slug
+  let result = await supabase
     .from('categories')
     .upsert(row, { onConflict: 'slug' })
     .select()
-    .single()
 
-  if (error) {
-    console.error('Error creating category in Supabase:', error)
-    throw error
+  // 2. If onConflict slug failed, fallback to onConflict id
+  if (result.error) {
+    console.warn('Upsert on slug failed, trying upsert on id:', result.error.message)
+    result = await supabase
+      .from('categories')
+      .upsert(row, { onConflict: 'id' })
+      .select()
   }
 
-  return mapCategoryFromRow(data)
+  // 3. Fallback to plain insert
+  if (result.error) {
+    console.warn('Upsert failed, trying plain insert:', result.error.message)
+    result = await supabase
+      .from('categories')
+      .insert([row])
+      .select()
+  }
+
+  if (result.error) {
+    console.error('Category insert failed in Supabase:', result.error)
+    throw new Error(result.error.message || 'Database error creating category')
+  }
+
+  const savedRow = Array.isArray(result.data) ? result.data[0] : result.data
+  return savedRow ? mapCategoryFromRow(savedRow) : { ...category, slug: row.slug, id: row.id }
 }
 
 export async function updateCategoryInSupabase(slug, fields) {
@@ -302,14 +333,14 @@ export async function updateCategoryInSupabase(slug, fields) {
     .update(updatePayload)
     .eq('slug', slug)
     .select()
-    .single()
 
   if (error) {
     console.error('Error updating category in Supabase:', error)
-    throw error
+    throw new Error(error.message || 'Database error updating category')
   }
 
-  return mapCategoryFromRow(data)
+  const updatedRow = Array.isArray(data) ? data[0] : data
+  return updatedRow ? mapCategoryFromRow(updatedRow) : fields
 }
 
 export async function deleteCategoryFromSupabase(slug) {
@@ -322,19 +353,15 @@ export async function deleteCategoryFromSupabase(slug) {
 
   if (error) {
     console.error('Error deleting category from Supabase:', error)
-    throw error
+    throw new Error(error.message || 'Database error deleting category')
   }
 
   return true
 }
 
-// ─── Data Migration / Seeding Helper ─────────────────────────────────────────
+// ─── Initial Seeder & Migration Helper ────────────────────────────────────────
 
-/**
- * Seeds existing local products and categories into Supabase Database.
- * Preserves all design codes, imagery, descriptions, and specifications.
- */
-export async function seedInitialDataToSupabase(productsList, categoriesList) {
+export async function seedInitialDataToSupabase(productsList = [], categoriesList = []) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase is not configured yet.')
   }
@@ -344,25 +371,31 @@ export async function seedInitialDataToSupabase(productsList, categoriesList) {
 
   // 1. Upsert Categories
   if (categoryRows.length > 0) {
-    const { error: catError } = await supabase
+    let { error: catError } = await supabase
       .from('categories')
       .upsert(categoryRows, { onConflict: 'slug' })
 
     if (catError) {
+      console.warn('Upsert categories on slug failed, trying on id:', catError.message)
+      const res = await supabase.from('categories').upsert(categoryRows, { onConflict: 'id' })
+      catError = res.error
+    }
+
+    if (catError) {
       console.error('Error seeding categories to Supabase:', catError)
-      throw catError
+      throw new Error(catError.message || 'Failed to seed categories')
     }
   }
 
   // 2. Upsert Products
   if (productRows.length > 0) {
-    const { error: prodError } = await supabase
+    let { error: prodError } = await supabase
       .from('products')
       .upsert(productRows, { onConflict: 'id' })
 
     if (prodError) {
       console.error('Error seeding products to Supabase:', prodError)
-      throw prodError
+      throw new Error(prodError.message || 'Failed to seed products')
     }
   }
 

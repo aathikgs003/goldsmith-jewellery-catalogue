@@ -21,8 +21,19 @@ CREATE TABLE IF NOT EXISTS public.categories (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Index for fast category lookups
-CREATE INDEX IF NOT EXISTS idx_categories_slug ON public.categories (slug);
+-- Ensure all columns exist even if table was created previously with older schema
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS image TEXT;
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active';
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT true;
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- Ensure unique index on slug for conflict resolution
+CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_slug_unique ON public.categories (slug);
 CREATE INDEX IF NOT EXISTS idx_categories_status ON public.categories (status);
 
 -- 2. PRODUCTS TABLE
@@ -30,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
-  category TEXT REFERENCES public.categories(slug) ON UPDATE CASCADE ON DELETE SET NULL,
+  category TEXT,
   style TEXT DEFAULT 'traditional',
   occasion TEXT DEFAULT 'Wedding',
   weight_range TEXT,
@@ -49,13 +60,32 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Indexes for products
+-- Ensure all product columns exist even if table was created previously
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS style TEXT DEFAULT 'traditional';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS occasion TEXT DEFAULT 'Wedding';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS weight_range TEXT;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS price NUMERIC;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS weight TEXT DEFAULT '15.0g';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS purity TEXT DEFAULT '22 KT';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS availability TEXT DEFAULT 'In Stock';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active';
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS new_arrival BOOLEAN DEFAULT false;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT true;
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE IF EXISTS public.products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- Ensure indexes for products
 CREATE INDEX IF NOT EXISTS idx_products_slug ON public.products (slug);
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products (category);
 CREATE INDEX IF NOT EXISTS idx_products_status ON public.products (status);
 CREATE INDEX IF NOT EXISTS idx_products_published ON public.products (published);
-CREATE INDEX IF NOT EXISTS idx_products_featured ON public.products (featured);
-CREATE INDEX IF NOT EXISTS idx_products_new_arrival ON public.products (new_arrival);
 
 -- 3. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
@@ -65,16 +95,17 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow public read access on categories" ON public.categories;
 DROP POLICY IF EXISTS "Allow authenticated admin full access on categories" ON public.categories;
 DROP POLICY IF EXISTS "Allow admin operations on categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow all category access" ON public.categories;
 
--- Anyone can view active/published categories
+-- Allow public read access to active categories
 CREATE POLICY "Allow public read access on categories"
   ON public.categories
   FOR SELECT
   TO anon, authenticated
   USING (true);
 
--- Allow catalogue management operations
-CREATE POLICY "Allow admin operations on categories"
+-- Allow full management operations on categories
+CREATE POLICY "Allow all category access"
   ON public.categories
   FOR ALL
   TO anon, authenticated
@@ -85,16 +116,17 @@ CREATE POLICY "Allow admin operations on categories"
 DROP POLICY IF EXISTS "Allow public read published products" ON public.products;
 DROP POLICY IF EXISTS "Allow authenticated admin full access on products" ON public.products;
 DROP POLICY IF EXISTS "Allow admin operations on products" ON public.products;
+DROP POLICY IF EXISTS "Allow all product access" ON public.products;
 
--- Visitors and customers can read published products; admin can read all
+-- Allow public read access to products
 CREATE POLICY "Allow public read published products"
   ON public.products
   FOR SELECT
   TO anon, authenticated
   USING (published = true OR auth.role() = 'authenticated');
 
--- Allow catalogue management operations
-CREATE POLICY "Allow admin operations on products"
+-- Allow full management operations on products
+CREATE POLICY "Allow all product access"
   ON public.products
   FOR ALL
   TO anon, authenticated
@@ -102,18 +134,20 @@ CREATE POLICY "Allow admin operations on products"
   WITH CHECK (true);
 
 -- 6. STORAGE BUCKET CONFIGURATION ('jewellery-images')
--- Ensure bucket exists and is public
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'jewellery-images',
   'jewellery-images',
   true,
-  10485760, -- 10MB limit per image
-  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+  20971520, -- 20MB limit per image
+  null -- Accept all image types (jpeg, png, webp, heic, gif, svg)
 )
-ON CONFLICT (id) DO UPDATE SET public = true;
+ON CONFLICT (id) DO UPDATE SET
+  public = true,
+  file_size_limit = 20971520,
+  allowed_mime_types = null;
 
--- Drop existing storage policies on jewellery-images if any
+-- Clean existing storage policies on jewellery-images
 DROP POLICY IF EXISTS "Public can view jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated admins can upload jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated admins can update jewellery images" ON storage.objects;
@@ -121,31 +155,38 @@ DROP POLICY IF EXISTS "Authenticated admins can delete jewellery images" ON stor
 DROP POLICY IF EXISTS "Allow upload jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Allow update jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Allow delete jewellery images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow all jewellery images read" ON storage.objects;
+DROP POLICY IF EXISTS "Allow all jewellery images write" ON storage.objects;
 
 -- Allow public read access to jewellery-images bucket
-CREATE POLICY "Public can view jewellery images"
+CREATE POLICY "Allow all jewellery images read"
   ON storage.objects
   FOR SELECT
   TO anon, authenticated
   USING (bucket_id = 'jewellery-images');
 
--- Allow upload to jewellery-images bucket
-CREATE POLICY "Allow upload jewellery images"
+-- Allow all uploads to jewellery-images bucket
+CREATE POLICY "Allow all jewellery images write"
   ON storage.objects
-  FOR INSERT
+  FOR ALL
   TO anon, authenticated
+  USING (bucket_id = 'jewellery-images')
   WITH CHECK (bucket_id = 'jewellery-images');
 
--- Allow update in jewellery-images bucket
-CREATE POLICY "Allow update jewellery images"
-  ON storage.objects
-  FOR UPDATE
-  TO anon, authenticated
-  USING (bucket_id = 'jewellery-images');
-
--- Allow delete from jewellery-images bucket
-CREATE POLICY "Allow delete jewellery images"
-  ON storage.objects
-  FOR DELETE
-  TO anon, authenticated
-  USING (bucket_id = 'jewellery-images');
+-- 7. ENABLE REALTIME SYNC ACROSS ALL DEVICES
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'categories'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.categories;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'products'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
+  END IF;
+END $$;

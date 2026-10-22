@@ -343,15 +343,23 @@ export function AdminProvider({ children }) {
       ])
 
       // Handle categories
-      if (Array.isArray(remoteCats) && remoteCats.length > 0) {
-        const cleanedCats = remoteCats.filter((c) => !isDummyCategory(c))
-        setCategories(cleanedCats)
-        localStorage.setItem('slgw_admin_categories', JSON.stringify(cleanedCats))
-
-        // If remote database contains dummy category, clean it up
-        const dummyRemote = remoteCats.filter((c) => isDummyCategory(c))
-        for (const d of dummyRemote) {
-          deleteCategoryFromSupabase(d.slug || d.id).catch(() => {})
+      if (Array.isArray(remoteCats)) {
+        if (remoteCats.length > 0) {
+          const cleanedCats = remoteCats.filter((c) => !isDummyCategory(c))
+          setCategories(cleanedCats)
+          localStorage.setItem('slgw_admin_categories', JSON.stringify(cleanedCats))
+        } else if (autoSeedIfEmpty) {
+          console.info('Seeding initial categories to Supabase...')
+          try {
+            await seedInitialDataToSupabase([], initialCategories)
+            const seeded = await fetchCategoriesFromSupabase()
+            if (seeded?.length) {
+              setCategories(seeded)
+              localStorage.setItem('slgw_admin_categories', JSON.stringify(seeded))
+            }
+          } catch (seedErr) {
+            console.warn('Auto-seed categories notice:', seedErr.message)
+          }
         }
       }
 
@@ -361,19 +369,17 @@ export function AdminProvider({ children }) {
           setProducts(remoteProds)
           localStorage.setItem('slgw_admin_products', JSON.stringify(remoteProds))
         } else if (autoSeedIfEmpty && remoteProds.length === 0) {
-          // Fresh database detected: auto-seed initial catalogue
-          console.info('Supabase database is empty. Seeding initial catalogue items...')
+          console.info('Seeding initial products to Supabase...')
           try {
-            const seedResult = await seedInitialDataToSupabase(initialProducts, initialCategories)
+            const seedResult = await seedInitialDataToSupabase(initialProducts, [])
             setSyncStatus(`Initial catalogue synced: ${seedResult.productsCount} products.`)
-            // Re-fetch after seeding
             const seeded = await fetchProductsFromSupabase()
             if (seeded?.length) {
               setProducts(seeded)
               localStorage.setItem('slgw_admin_products', JSON.stringify(seeded))
             }
           } catch (seedErr) {
-            console.warn('Auto-seed deferred (requires admin RLS or tables):', seedErr.message)
+            console.warn('Auto-seed products notice:', seedErr.message)
           }
         }
       }
@@ -392,10 +398,51 @@ export function AdminProvider({ children }) {
     refreshData(true)
   }, [refreshData])
 
+  // Realtime subscription: live updates across all open tabs, phones, and devices
+  useEffect(() => {
+    if (!isSupabaseConfigured) return
+
+    const channel = supabase
+      .channel('public_catalogue_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'categories' },
+        () => {
+          fetchCategoriesFromSupabase()
+            .then((cats) => {
+              if (Array.isArray(cats) && cats.length > 0) {
+                setCategories(cats)
+                localStorage.setItem('slgw_admin_categories', JSON.stringify(cats))
+              }
+            })
+            .catch(() => {})
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        () => {
+          fetchProductsFromSupabase()
+            .then((prods) => {
+              if (Array.isArray(prods) && prods.length > 0) {
+                setProducts(prods)
+                localStorage.setItem('slgw_admin_products', JSON.stringify(prods))
+              }
+            })
+            .catch(() => {})
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
   // One-click manual migration helper
   const migrateToSupabase = async () => {
     if (!isSupabaseConfigured) {
-      return { success: false, error: 'Supabase URL and Key are not configured in .env.local' }
+      return { success: false, error: 'Supabase URL and Key are not configured in Vercel or .env.local' }
     }
     setIsSyncing(true)
     setSyncStatus('Syncing catalogue to Supabase...')
