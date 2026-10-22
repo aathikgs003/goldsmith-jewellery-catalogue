@@ -87,7 +87,57 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON public.products (category);
 CREATE INDEX IF NOT EXISTS idx_products_status ON public.products (status);
 CREATE INDEX IF NOT EXISTS idx_products_published ON public.products (published);
 
--- 3. ENABLE ROW LEVEL SECURITY (RLS)
+
+-- 3. ORDERS & CUSTOM CONSULTATIONS TABLE
+CREATE TABLE IF NOT EXISTS public.orders (
+  id TEXT PRIMARY KEY,
+  customer_name TEXT NOT NULL,
+  contact TEXT NOT NULL,
+  email TEXT,
+  design_name TEXT NOT NULL,
+  design_id TEXT,
+  category TEXT,
+  requested_weight TEXT,
+  base_weight TEXT,
+  consultation_type TEXT,
+  notes TEXT,
+  image TEXT,
+  status TEXT DEFAULT 'Order Received',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS contact TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS design_name TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS design_id TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS requested_weight TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS base_weight TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS consultation_type TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS image TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Order Received';
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders (status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders (created_at);
+
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow all orders read" ON public.orders;
+DROP POLICY IF EXISTS "Allow all orders insert" ON public.orders;
+DROP POLICY IF EXISTS "Allow all orders update" ON public.orders;
+DROP POLICY IF EXISTS "Allow all orders delete" ON public.orders;
+
+CREATE POLICY "Allow all orders read" ON public.orders FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow all orders insert" ON public.orders FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow all orders update" ON public.orders FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all orders delete" ON public.orders FOR DELETE TO anon, authenticated USING (true);
+
+-- 4. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
@@ -204,6 +254,13 @@ BEGIN
     WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'products'
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'orders'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
   END IF;
 END $$;
 

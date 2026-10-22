@@ -20,44 +20,68 @@ const AdminContext = createContext(null)
 
 const INITIAL_ENQUIRIES = [
   {
-    id: 'ENQ-001',
-    name: 'Priya',
+    id: 'ORD-101',
+    name: 'Priya Sundaram',
     contact: '9876543210',
-    design: 'BGL-001',
-    category: 'Bangles',
-    message: 'Price details please',
-    date: '21 Oct',
-    status: 'Pending',
+    email: 'priya@example.com',
+    design: 'Kada Bangle',
+    designId: 'BGL-008',
+    category: 'bangles',
+    requestedWeight: '32.0g',
+    baseWeight: '28.5g',
+    consultationType: 'In-Store Showroom Consultation',
+    message: 'Want antique finish with 2.6 size bangle and screw clasp.',
+    date: '22 Oct',
+    status: 'Order Received',
+    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=80',
   },
   {
-    id: 'ENQ-002',
-    name: 'Karthik',
+    id: 'ORD-102',
+    name: 'Karthik Raja',
     contact: '9123456789',
-    design: 'Custom Design',
-    category: 'Custom Design',
-    message: 'Want custom necklace',
-    date: '20 Oct',
-    status: 'Pending',
+    email: 'karthik@example.com',
+    design: 'Temple Haram Necklace',
+    designId: 'NEC-004',
+    category: 'necklaces',
+    requestedWeight: '45.0g',
+    baseWeight: '40.0g',
+    consultationType: 'Direct Goldsmith Video Call',
+    message: 'Wedding bridal jewellery for November, Lakshmi motif center pendant.',
+    date: '21 Oct',
+    status: 'Order Confirmed',
+    image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400&q=80',
   },
   {
-    id: 'ENQ-003',
-    name: 'Sneha',
+    id: 'ORD-103',
+    name: 'Sneha Murugan',
     contact: '9988776655',
-    design: 'RNG-001',
-    category: 'Rings',
-    message: 'Ring size and price',
-    date: '19 Oct',
-    status: 'Replied',
+    email: '',
+    design: 'Floral Gold Ring',
+    designId: 'RNG-002',
+    category: 'rings',
+    requestedWeight: '6.5g',
+    baseWeight: '5.0g',
+    consultationType: 'In-Store Showroom Consultation',
+    message: 'Ring size 14, ruby center stone setting.',
+    date: '20 Oct',
+    status: 'Order Processing',
+    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=80',
   },
   {
-    id: 'ENQ-004',
-    name: 'Ananya',
+    id: 'ORD-104',
+    name: 'Ananya S.',
     contact: '9876543210',
-    design: 'EAR-001',
-    category: 'Earrings',
-    message: 'Are temple jhumkas available in 22KT?',
+    email: '',
+    design: 'Antique Temple Jhumkas',
+    designId: 'EAR-001',
+    category: 'earrings',
+    requestedWeight: '18.0g',
+    baseWeight: '15.0g',
+    consultationType: 'Home Delivery with Hallmark',
+    message: 'Hallmarked 916 certified, delivered to Tenkasi residence.',
     date: '18 Oct',
-    status: 'Replied',
+    status: 'Order Handed Over',
+    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=80',
   },
 ]
 
@@ -670,29 +694,87 @@ export function AdminProvider({ children }) {
     localStorage.setItem('slgw_admin_enquiries', JSON.stringify(enquiries))
   }, [enquiries])
 
-  const updateEnquiryStatus = (id, status) => {
+    const updateEnquiryStatus = (id, status) => {
+    updateOrderStatus(id, status)
+  }
+
+  const updateOrderStatus = async (id, status) => {
     setEnquiries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status } : e)),
+      prev.map((e) => (e.id === id ? { ...e, status } : e))
     )
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from('orders')
+          .update({ status, updated_at: new Date().toISOString() })
+          .eq('id', id)
+      } catch (err) {
+        console.warn('Could not update order in Supabase:', err.message)
+      }
+    }
+  }
+
+  const addOrder = async (orderData) => {
+    const orderId = `ORD-${Date.now().toString().slice(-6)}`
+    const newOrder = {
+      id: orderId,
+      name: orderData.name,
+      contact: orderData.contact,
+      email: orderData.email || '',
+      design: orderData.designName || orderData.design || 'Custom Jewellery',
+      designId: orderData.designId || '',
+      category: orderData.category || '',
+      requestedWeight: orderData.requestedWeight || '',
+      baseWeight: orderData.baseWeight || '',
+      consultationType: orderData.consultationType || 'Showroom Consultation',
+      message: orderData.notes || orderData.message || '',
+      image: orderData.image || '',
+      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      status: 'Order Received',
+      createdAt: new Date().toISOString(),
+    }
+
+    setEnquiries((prev) => [newOrder, ...prev])
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('orders').insert([
+          {
+            id: newOrder.id,
+            customer_name: newOrder.name,
+            contact: newOrder.contact,
+            email: newOrder.email,
+            design_name: newOrder.design,
+            design_id: newOrder.designId,
+            category: newOrder.category,
+            requested_weight: newOrder.requestedWeight,
+            base_weight: newOrder.baseWeight,
+            consultation_type: newOrder.consultationType,
+            notes: newOrder.message,
+            image: newOrder.image,
+            status: newOrder.status,
+            created_at: newOrder.createdAt,
+          },
+        ])
+      } catch (err) {
+        console.warn('Supabase order insert notice:', err.message)
+      }
+    }
+
+    return newOrder
   }
 
   const addEnquiry = (enq) => {
-    const newEnq = {
-      id: `ENQ-${String(enquiries.length + 1).padStart(3, '0')}`,
-      name: enq.name,
-      contact: enq.contact,
-      design: enq.design || enq.category || 'General Enquiry',
-      category: enq.category || 'Jewellery',
-      message: enq.message || 'Consultation enquiry',
-      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-      status: 'Pending',
-    }
-    setEnquiries((prev) => [newEnq, ...prev])
-    return newEnq
+    return addOrder(enq)
   }
 
-  const deleteEnquiry = (id) => {
+  const deleteEnquiry = async (id) => {
     setEnquiries((prev) => prev.filter((e) => e.id !== id))
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('orders').delete().eq('id', id)
+      } catch (_) {}
+    }
   }
 
   // ─── 5. Content & Store Settings State ───
@@ -835,7 +917,9 @@ export function AdminProvider({ children }) {
         refreshData,
         enquiries,
         addEnquiry,
+        addOrder,
         updateEnquiryStatus,
+        updateOrderStatus,
         deleteEnquiry,
         websiteContent,
         updateContent,

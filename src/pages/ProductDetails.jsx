@@ -4,6 +4,7 @@ import { Share2, Link2, Eye, Tag, Scale, Sparkles, CheckCircle2, Mail, ArrowLeft
 import Breadcrumb from '../components/Breadcrumb'
 import ProductGrid from '../components/ProductGrid'
 import ProductLightbox from '../components/ProductLightbox'
+import CustomOrderModal from '../components/CustomOrderModal'
 import { useProduct, useRelatedProducts, useFavourites } from '../hooks/useProducts'
 import { getAvailabilityInfo } from '../services/productService'
 import { getCategoryBySlug } from '../data/categories'
@@ -23,6 +24,7 @@ export default function ProductDetails() {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [copied, setCopied] = useState(false)
   const [relLightboxProduct, setRelLightboxProduct] = useState(null)
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
   const { isFav, toggle: toggleFav } = useFavourites()
 
   if (!product) {
@@ -282,13 +284,14 @@ export default function ProductDetails() {
                 <span>Enquire on WhatsApp</span>
               </a>
 
-              <Link
-                to={`/contact?design=${encodeURIComponent(product.name)}`}
-                className="w-full flex items-center justify-center gap-2.5 bg-[#351016] hover:bg-[#45151D] text-white font-semibold py-3 px-6 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-xs"
+              <button
+                type="button"
+                onClick={() => setIsOrderModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2.5 bg-[#351016] hover:bg-[#45151D] text-white font-semibold py-3.5 px-6 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg cursor-pointer group"
               >
-                <Mail size={16} />
+                <Sparkles size={16} className="text-[#C4933D] group-hover:rotate-12 transition-transform" />
                 <span>Custom Order / Store Consultation</span>
-              </Link>
+              </button>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <button
