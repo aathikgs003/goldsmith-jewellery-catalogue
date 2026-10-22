@@ -1,20 +1,28 @@
 import { useState, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Heart, Share2, Eye, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { buildProductUrl } from '../config/siteConfig'
+import { useFavourites } from '../hooks/useProducts'
 
 const LONG_PRESS_DELAY = 550 // ms
 
 const FALLBACK_IMAGE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Crect width='500' height='500' fill='%23F5EBDD'/%3E%3Ccircle cx='250' cy='230' r='70' fill='none' stroke='%23C4933D' stroke-width='2' stroke-dasharray='4 4' opacity='0.7'/%3E%3Ctext x='250' y='340' text-anchor='middle' font-family='Georgia,serif' font-size='16' fill='%2330231F' font-weight='500'%3ELakshmanan Gold Works%3C/text%3E%3C/svg%3E"
 
-export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFav }) {
+export default function ProductCard({ product, onOpenLightbox, isFav: propIsFav, onToggleFav: propToggleFav }) {
+  const navigate = useNavigate()
+  const { isFav: hookIsFav, toggle: hookToggle } = useFavourites()
+  const isFav = propIsFav !== undefined ? propIsFav : hookIsFav(product?.id)
+  const onToggleFav = propToggleFav || hookToggle
+
   const [shareMenuOpen, setShareMenuOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [imgSrc, setImgSrc] = useState(product?.images?.[0] || FALLBACK_IMAGE)
   const longPressTimer = useRef(null)
   const isDragging = useRef(false)
+
+  const productPath = `/product/${product?.slug || product?.id}`
 
   // ─── Long Press for Touch Devices ───
   const startLongPress = useCallback(() => {
@@ -36,7 +44,7 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
   }, [cancelLongPress])
 
   // ─── Sharing Logic ───
-  const productUrl = buildProductUrl(product.id)
+  const productUrl = buildProductUrl(product?.id)
 
   const share = async (e) => {
     e?.stopPropagation()
@@ -73,12 +81,16 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
     setTimeout(() => setCopied(false), 2200)
   }
 
+  const handleCardClick = () => {
+    navigate(productPath)
+  }
+
   return (
     <div className="group relative bg-white rounded-2xl overflow-hidden border border-[#D8B36A]/40 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col no-select">
-      {/* ─── Image Container ─── */}
+      {/* ─── Image Container (Navigates to Full Product Details Page) ─── */}
       <div
-        className="relative aspect-[4/3] overflow-hidden bg-[#FFFCF7] cursor-zoom-in"
-        onClick={() => onOpenLightbox?.(product)}
+        className="relative aspect-[4/3] overflow-hidden bg-[#FFFCF7] cursor-pointer"
+        onClick={handleCardClick}
         onTouchStart={startLongPress}
         onTouchEnd={cancelLongPress}
         onTouchMove={onTouchMove}
@@ -87,10 +99,10 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            onOpenLightbox?.(product)
+            handleCardClick()
           }
         }}
-        aria-label={`View enlarged photo of ${product.name}`}
+        aria-label={`View full details of ${product.name}`}
       >
         <img
           src={imgSrc}
@@ -108,29 +120,34 @@ export default function ProductCard({ product, onOpenLightbox, isFav, onToggleFa
             </span>
           ) : <div />}
 
-          {/* Heart Favourite Button */}
-          <button
+          {/* Heart Favourite Button with Red Scale Animation */}
+          <motion.button
+            whileTap={{ scale: 0.75 }}
+            animate={isFav ? { scale: [1, 1.45, 0.85, 1.2, 1] } : { scale: 1 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
             onClick={(e) => {
               e.stopPropagation()
               onToggleFav?.(product.id)
             }}
             aria-label={isFav ? `Remove from favourites` : `Add to favourites`}
-            className="w-7 h-7 rounded-full bg-white/85 hover:bg-white backdrop-blur-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110 pointer-events-auto"
+            className="w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-xs flex items-center justify-center shadow-xs transition-colors pointer-events-auto relative"
           >
             <Heart
-              size={14}
-              className={`transition-colors ${
-                isFav ? 'fill-[#C4933D] text-[#C4933D]' : 'text-[#786D63]'
+              size={15}
+              className={`transition-all duration-300 ${
+                isFav
+                  ? 'fill-rose-500 text-rose-500 scale-105'
+                  : 'text-[#786D63] hover:text-rose-500'
               }`}
             />
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* ─── Card Body ─── */}
       <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between bg-white border-t border-[#F5EBDD]">
         <div>
-          <Link to={`/product/${product.slug}`} className="block group/link">
+          <Link to={productPath} className="block group/link">
             <h3
               className="text-xs sm:text-sm font-semibold text-[#30231F] group-hover/link:text-[#C4933D] transition-colors truncate leading-tight"
               style={{ fontFamily: "'Playfair Display', serif" }}

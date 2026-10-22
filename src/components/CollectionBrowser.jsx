@@ -19,6 +19,7 @@ import SectionOrnament from './SectionOrnament'
 import { categories as initialCategories } from '../data/categories'
 import { products as initialProducts } from '../data/products'
 import { useAdmin } from '../context/AdminContext'
+import { useFavourites } from '../hooks/useProducts'
 
 const STYLE_OPTIONS = [
   { id: 'all', label: 'All Styles' },
@@ -63,6 +64,7 @@ const PAGE_SIZE = 8
 
 export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const adminCtx = useAdmin()
+  const { isFav, toggle: toggleFav } = useFavourites()
   const rawCategories = adminCtx?.categories || initialCategories
   const categories = useMemo(() => {
     return rawCategories.filter(
@@ -761,6 +763,8 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
                   <ProductCard
                     key={product.id}
                     product={product}
+                    isFav={isFav(product.id)}
+                    onToggleFav={toggleFav}
                     onOpenLightbox={() => openLightbox(product)}
                   />
                 ))}

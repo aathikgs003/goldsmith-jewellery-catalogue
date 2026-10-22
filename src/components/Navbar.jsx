@@ -220,15 +220,27 @@ export default function Navbar() {
                 </button>
               </form>
 
-              {/* Wishlist Heart Button */}
+              {/* Wishlist Heart Button -> Favourite Collections */}
               <Link
-                to="/collections"
-                aria-label="View favourites"
-                className="relative p-2 text-[#30231F] hover:text-[#C4933D] transition-colors"
+                to="/favourites"
+                aria-label="View Favourite Collections"
+                title="Favourite Collections"
+                className={`relative p-2 transition-all group flex items-center justify-center ${
+                  location.pathname === '/favourites'
+                    ? 'text-rose-600 scale-105'
+                    : 'text-[#30231F] hover:text-rose-500'
+                }`}
               >
-                <Heart size={20} className="stroke-[1.6]" />
+                <Heart
+                  size={20}
+                  className={`stroke-[1.6] transition-colors ${
+                    favs.length > 0 || location.pathname === '/favourites'
+                      ? 'fill-rose-500/20 text-rose-500'
+                      : 'text-[#30231F] group-hover:text-rose-500'
+                  }`}
+                />
                 {favs.length > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-[#C4933D] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-xs animate-in zoom-in-50">
                     {favs.length}
                   </span>
                 )}
@@ -361,6 +373,27 @@ export default function Navbar() {
                     </NavLink>
                   )
                 })}
+
+                {/* Mobile Favourite Collections Link */}
+                <NavLink
+                  to="/favourites"
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    location.pathname === '/favourites'
+                      ? 'bg-rose-50 text-rose-600 font-semibold'
+                      : 'text-[#30231F] hover:bg-[#F5EBDD]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Heart size={16} className={favs.length > 0 ? 'fill-rose-500 text-rose-500' : 'text-[#786D63]'} />
+                    <span>Favourite Collections</span>
+                  </div>
+                  {favs.length > 0 && (
+                    <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {favs.length}
+                    </span>
+                  )}
+                </NavLink>
               </nav>
 
               {/* Mobile Categories Accordion/List */}

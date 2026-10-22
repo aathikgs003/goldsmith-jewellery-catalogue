@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Share2, Link2, Eye, Tag, Scale, Sparkles, CheckCircle2, Mail, ArrowLeft } from 'lucide-react'
+import { Share2, Link2, Eye, Tag, Scale, Sparkles, CheckCircle2, Mail, ArrowLeft, Heart, MessageCircle } from 'lucide-react'
 import Breadcrumb from '../components/Breadcrumb'
 import ProductGrid from '../components/ProductGrid'
 import ProductLightbox from '../components/ProductLightbox'
-import { useProduct, useRelatedProducts } from '../hooks/useProducts'
+import { useProduct, useRelatedProducts, useFavourites } from '../hooks/useProducts'
 import { getAvailabilityInfo } from '../services/productService'
 import { getCategoryBySlug } from '../data/categories'
 import { buildProductUrl } from '../config/siteConfig'
@@ -23,6 +23,7 @@ export default function ProductDetails() {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [copied, setCopied] = useState(false)
   const [relLightboxProduct, setRelLightboxProduct] = useState(null)
+  const { isFav, toggle: toggleFav } = useFavourites()
 
   if (!product) {
     return (
@@ -271,15 +272,34 @@ export default function ProductDetails() {
 
             {/* Actions CTA Section */}
             <div className="space-y-3 pt-2">
+              <a
+                href={`https://wa.me/919994541091?text=${encodeURIComponent('Vanakkam! I am interested in ' + product.name + ' (Design ID: ' + product.id + '). Please share price and weight details.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-semibold py-3.5 px-6 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg"
+              >
+                <MessageCircle size={18} />
+                <span>Enquire on WhatsApp</span>
+              </a>
+
               <Link
                 to={`/contact?design=${encodeURIComponent(product.name)}`}
-                className="w-full flex items-center justify-center gap-2.5 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold py-4 px-6 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg"
+                className="w-full flex items-center justify-center gap-2.5 bg-[#351016] hover:bg-[#45151D] text-white font-semibold py-3 px-6 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-xs"
               >
-                <Mail size={18} />
-                <span>Enquire About This Design</span>
+                <Mail size={16} />
+                <span>Custom Order / Store Consultation</span>
               </Link>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <button
+                  onClick={() => toggleFav(product.id)}
+                  className="flex items-center justify-center gap-1.5 bg-white hover:bg-rose-50 border border-[#D4AF6A]/40 text-[#25211D] font-semibold py-3 px-2 sm:px-3 rounded-xl text-xs transition-colors shadow-xs"
+                  aria-label="Save to favourites"
+                >
+                  <Heart size={14} className={isFav(product.id) ? "fill-rose-500 text-rose-500" : "text-[#786D63]"} />
+                  <span className="truncate">{isFav(product.id) ? 'Saved' : 'Save'}</span>
+                </button>
+
                 <button
                   onClick={() => openLightbox(activeImage)}
                   className="flex items-center justify-center gap-2 bg-white hover:bg-[#F0E4D0] border border-[#D4AF6A]/40 text-[#25211D] font-semibold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-xs"

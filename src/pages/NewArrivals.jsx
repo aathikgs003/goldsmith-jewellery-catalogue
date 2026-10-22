@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Search,
   ArrowRight,
@@ -39,6 +40,7 @@ const WEIGHTS = [
 const PAGE_SIZE = 12
 
 export default function NewArrivals() {
+  const navigate = useNavigate()
   const adminCtx = useAdmin()
   const allProducts = adminCtx?.products || fallbackProducts
   const categoriesList = adminCtx?.categories || fallbackCategories

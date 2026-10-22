@@ -9,6 +9,7 @@ import ProductDetails from './pages/ProductDetails'
 import NewArrivals from './pages/NewArrivals'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import Favourites from './pages/Favourites'
 import NotFound from './pages/NotFound'
 
 // Admin Provider & Pages
@@ -57,6 +58,8 @@ function AppShell() {
           <Route path="/collections" element={<Collections />} />
           <Route path="/collections/:slug" element={<CategoryPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/favourites" element={<Favourites />} />
+          <Route path="/favorites" element={<Favourites />} />
           <Route path="/new-arrivals" element={<NewArrivals />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
