@@ -41,9 +41,7 @@ export default function Home() {
     adminCategories && adminCategories.length > 0 ? adminCategories : defaultCategories
   const displayCategories = rawCategories.filter(
     (c) =>
-      c.status !== 'Inactive' &&
-      String(c.slug || '').toLowerCase() !== 'dummy' &&
-      String(c.name || '').toLowerCase() !== 'dummy'
+      c.status !== 'Inactive'
   )
   const heroData = websiteContent?.hero || {
     eyebrow: 'TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY',

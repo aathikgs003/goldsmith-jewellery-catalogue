@@ -49,9 +49,7 @@ export default function NewArrivals() {
     const list = adminCtx?.categories || fallbackCategories
     const activeList = list.filter(
       (c) =>
-        (c.status ? c.status === 'Active' : true) &&
-        String(c.slug || '').toLowerCase() !== 'dummy' &&
-        String(c.name || '').toLowerCase() !== 'dummy'
+        (c.status ? c.status === 'Active' : true)
     )
     return [
       {

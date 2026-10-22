@@ -281,32 +281,19 @@ export function AdminProvider({ children }) {
     }
   }
 
-  // Helper to filter out test/dummy entries
-  const isDummyCategory = (c) => {
-    if (!c) return true
-    const s = String(c.slug || '').toLowerCase().trim()
-    const n = String(c.name || '').toLowerCase().trim()
-    const id = String(c.id || '').toLowerCase().trim()
-    return s === 'dummy' || n === 'dummy' || id === 'dummy'
-  }
-
   // ─── 2. Categories State & Remote Sync ───
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_categories')
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter((c) => !isDummyCategory(c))
-          if (cleaned.length !== parsed.length) {
-            localStorage.setItem('slgw_admin_categories', JSON.stringify(cleaned))
-          }
-          return cleaned
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
         }
       }
-      return initialCategories.filter((c) => !isDummyCategory(c))
+      return initialCategories
     } catch {
-      return initialCategories.filter((c) => !isDummyCategory(c))
+      return initialCategories
     }
   })
   const [isLoadingCategories, setIsLoadingCategories] = useState(isSupabaseConfigured)
@@ -353,9 +340,8 @@ export function AdminProvider({ children }) {
       // Handle categories
       if (Array.isArray(remoteCats)) {
         if (remoteCats.length > 0) {
-          const cleanedCats = remoteCats.filter((c) => !isDummyCategory(c))
-          setCategories(cleanedCats)
-          localStorage.setItem('slgw_admin_categories', JSON.stringify(cleanedCats))
+          setCategories(remoteCats)
+          localStorage.setItem('slgw_admin_categories', JSON.stringify(remoteCats))
         } else if (autoSeedIfEmpty) {
           console.info('Seeding initial categories to Supabase...')
           try {
@@ -580,23 +566,20 @@ export function AdminProvider({ children }) {
       createdAt: new Date().toISOString(),
     }
 
-    // Optimistic local update
-    setProducts((prev) => [newProd, ...prev])
-
     if (isSupabaseConfigured) {
       try {
         const saved = await insertProductToSupabase(newProd)
-        if (saved) {
-          setProducts((prev) => prev.map((p) => (p.id === newProd.id ? saved : p)))
-          return saved
-        }
+        const finalProd = saved || newProd
+        setProducts((prev) => [finalProd, ...prev.filter((p) => p.id !== finalProd.id)])
+        return finalProd
       } catch (err) {
         console.error('Supabase product insert failed:', err)
         throw err
       }
+    } else {
+      setProducts((prev) => [newProd, ...prev.filter((p) => p.id !== newProd.id)])
+      return newProd
     }
-
-    return newProd
   }
 
   const updateProduct = async (id, updatedFields) => {

@@ -66,9 +66,7 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const rawCategories = adminCtx?.categories || initialCategories
   const categories = useMemo(() => {
     return rawCategories.filter(
-      (c) =>
-        String(c.slug || '').toLowerCase() !== 'dummy' &&
-        String(c.name || '').toLowerCase() !== 'dummy'
+      (c) =>Boolean(c && (c.slug || c.name))
     )
   }, [rawCategories])
   const products = adminCtx?.products || initialProducts

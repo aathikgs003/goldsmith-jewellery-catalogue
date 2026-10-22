@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Instructions:
 -- 1. Open your Supabase Dashboard: https://supabase.com/dashboard
--- 2. Select your Project -> SQL Editor -> New query
+-- 2. Select your Project (lakshmanan-jewels) -> SQL Editor -> New query
 -- 3. Paste this entire SQL file and click "Run" (or Ctrl + Enter).
 -- ============================================================================
 
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.categories (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Ensure all columns exist even if table was created previously with older schema
+-- Ensure all columns exist even if table was created previously
 ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS name TEXT;
 ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS description TEXT;
@@ -32,7 +32,7 @@ ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS display_order I
 ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE IF EXISTS public.categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
--- Ensure unique index on slug for conflict resolution
+-- Ensure indexes for categories
 CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_slug_unique ON public.categories (slug);
 CREATE INDEX IF NOT EXISTS idx_categories_status ON public.categories (status);
 
@@ -97,20 +97,20 @@ DROP POLICY IF EXISTS "Allow authenticated admin full access on categories" ON p
 DROP POLICY IF EXISTS "Allow admin operations on categories" ON public.categories;
 DROP POLICY IF EXISTS "Allow all category access" ON public.categories;
 
--- Allow public read access to active categories
+-- Allow public read access to categories
 CREATE POLICY "Allow public read access on categories"
   ON public.categories
   FOR SELECT
   TO anon, authenticated
   USING (true);
 
--- Allow full management operations on categories
-CREATE POLICY "Allow all category access"
+-- Allow authenticated admin full write access on categories
+CREATE POLICY "Allow authenticated admin full access on categories"
   ON public.categories
   FOR ALL
-  TO anon, authenticated
-  USING (true)
-  WITH CHECK (true);
+  TO authenticated
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- 5. RLS POLICIES FOR PRODUCTS
 DROP POLICY IF EXISTS "Allow public read published products" ON public.products;
@@ -118,20 +118,20 @@ DROP POLICY IF EXISTS "Allow authenticated admin full access on products" ON pub
 DROP POLICY IF EXISTS "Allow admin operations on products" ON public.products;
 DROP POLICY IF EXISTS "Allow all product access" ON public.products;
 
--- Allow public read access to products
+-- Allow public read access to published products (and admin can see all)
 CREATE POLICY "Allow public read published products"
   ON public.products
   FOR SELECT
   TO anon, authenticated
   USING (published = true OR auth.role() = 'authenticated');
 
--- Allow full management operations on products
-CREATE POLICY "Allow all product access"
+-- Allow authenticated admin full write access on products
+CREATE POLICY "Allow authenticated admin full access on products"
   ON public.products
   FOR ALL
-  TO anon, authenticated
-  USING (true)
-  WITH CHECK (true);
+  TO authenticated
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- 6. STORAGE BUCKET CONFIGURATION ('jewellery-images')
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -157,21 +157,23 @@ DROP POLICY IF EXISTS "Allow update jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Allow delete jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Allow all jewellery images read" ON storage.objects;
 DROP POLICY IF EXISTS "Allow all jewellery images write" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public read jewellery images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated admin manage jewellery images" ON storage.objects;
 
 -- Allow public read access to jewellery-images bucket
-CREATE POLICY "Allow all jewellery images read"
+CREATE POLICY "Allow public read jewellery images"
   ON storage.objects
   FOR SELECT
   TO anon, authenticated
   USING (bucket_id = 'jewellery-images');
 
--- Allow all uploads to jewellery-images bucket
-CREATE POLICY "Allow all jewellery images write"
+-- Allow authenticated admin write operations on jewellery-images bucket
+CREATE POLICY "Allow authenticated admin manage jewellery images"
   ON storage.objects
   FOR ALL
-  TO anon, authenticated
-  USING (bucket_id = 'jewellery-images')
-  WITH CHECK (bucket_id = 'jewellery-images');
+  TO authenticated
+  USING (bucket_id = 'jewellery-images' AND auth.role() = 'authenticated')
+  WITH CHECK (bucket_id = 'jewellery-images' AND auth.role() = 'authenticated');
 
 -- 7. ENABLE REALTIME SYNC ACROSS ALL DEVICES
 DO $$
@@ -190,3 +192,8 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
   END IF;
 END $$;
+
+-- 8. AUTO-CONFIRM OWNER EMAIL FOR IMMEDIATE AUTHENTICATION
+UPDATE auth.users 
+SET email_confirmed_at = COALESCE(email_confirmed_at, now())
+WHERE email = 'surinathan770@gmail.com';
