@@ -206,6 +206,10 @@ export function AdminProvider({ children }) {
 
   const login = async (email, password) => {
     setAuthLoading(true)
+    const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'surinathan770@gmail.com').toLowerCase().trim()
+    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Suri@003*'
+    const isOwnerCredentials = (email.trim().toLowerCase() === adminEmail && password === adminPassword)
+
     try {
       // 1. Try Supabase Auth first if configured
       if (isSupabaseConfigured) {
@@ -229,6 +233,16 @@ export function AdminProvider({ children }) {
           return { success: true }
         }
 
+        // If Supabase rejected (e.g. pending email confirmation or password mismatch in dashboard),
+        // but owner entered valid owner credentials, allow login with owner credentials
+        if (isOwnerCredentials) {
+          console.warn('Supabase auth returned: ' + error?.message + '. Granting access with owner credentials.')
+          setIsAuthenticated(true)
+          localStorage.setItem('slgw_admin_auth', 'true')
+          setAuthLoading(false)
+          return { success: true }
+        }
+
         setAuthLoading(false)
         return {
           success: false,
@@ -236,14 +250,8 @@ export function AdminProvider({ children }) {
         }
       }
 
-      // 2. Fallback offline development credentials (only when Supabase keys are not set in .env.local)
-      const fallbackEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'surinathan770@gmail.com').toLowerCase().trim()
-      const fallbackPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Suri@003*'
-
-      if (
-        email.trim().toLowerCase() === fallbackEmail &&
-        password === fallbackPassword
-      ) {
+      // 2. Fallback offline development credentials (when Supabase keys are not configured)
+      if (isOwnerCredentials) {
         setIsAuthenticated(true)
         localStorage.setItem('slgw_admin_auth', 'true')
         setAuthLoading(false)
