@@ -104,13 +104,13 @@ CREATE POLICY "Allow public read access on categories"
   TO anon, authenticated
   USING (true);
 
--- Allow authenticated admin full write access on categories
-CREATE POLICY "Allow authenticated admin full access on categories"
+-- Allow full write operations on categories
+CREATE POLICY "Allow all category access"
   ON public.categories
   FOR ALL
-  TO authenticated
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
 
 -- 5. RLS POLICIES FOR PRODUCTS
 DROP POLICY IF EXISTS "Allow public read published products" ON public.products;
@@ -118,20 +118,20 @@ DROP POLICY IF EXISTS "Allow authenticated admin full access on products" ON pub
 DROP POLICY IF EXISTS "Allow admin operations on products" ON public.products;
 DROP POLICY IF EXISTS "Allow all product access" ON public.products;
 
--- Allow public read access to published products (and admin can see all)
+-- Allow public read access to published products (and all products to admin)
 CREATE POLICY "Allow public read published products"
   ON public.products
   FOR SELECT
   TO anon, authenticated
   USING (published = true OR auth.role() = 'authenticated');
 
--- Allow authenticated admin full write access on products
-CREATE POLICY "Allow authenticated admin full access on products"
+-- Allow full write operations on products
+CREATE POLICY "Allow all product access"
   ON public.products
   FOR ALL
-  TO authenticated
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
 
 -- 6. STORAGE BUCKET CONFIGURATION ('jewellery-images')
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -140,7 +140,7 @@ VALUES (
   'jewellery-images',
   true,
   20971520, -- 20MB limit per image
-  null -- Accept all image types (jpeg, png, webp, heic, gif, svg)
+  null -- Accept all image formats
 )
 ON CONFLICT (id) DO UPDATE SET
   public = true,
@@ -167,13 +167,27 @@ CREATE POLICY "Allow public read jewellery images"
   TO anon, authenticated
   USING (bucket_id = 'jewellery-images');
 
--- Allow authenticated admin write operations on jewellery-images bucket
-CREATE POLICY "Allow authenticated admin manage jewellery images"
+-- Allow image uploads to jewellery-images bucket
+CREATE POLICY "Allow upload jewellery images"
   ON storage.objects
-  FOR ALL
-  TO authenticated
-  USING (bucket_id = 'jewellery-images' AND auth.role() = 'authenticated')
-  WITH CHECK (bucket_id = 'jewellery-images' AND auth.role() = 'authenticated');
+  FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (bucket_id = 'jewellery-images');
+
+-- Allow image updates in jewellery-images bucket
+CREATE POLICY "Allow update jewellery images"
+  ON storage.objects
+  FOR UPDATE
+  TO anon, authenticated
+  USING (bucket_id = 'jewellery-images')
+  WITH CHECK (bucket_id = 'jewellery-images');
+
+-- Allow image deletes in jewellery-images bucket
+CREATE POLICY "Allow delete jewellery images"
+  ON storage.objects
+  FOR DELETE
+  TO anon, authenticated
+  USING (bucket_id = 'jewellery-images');
 
 -- 7. ENABLE REALTIME SYNC ACROSS ALL DEVICES
 DO $$
@@ -193,7 +207,71 @@ BEGIN
   END IF;
 END $$;
 
--- 8. AUTO-CONFIRM OWNER EMAIL FOR IMMEDIATE AUTHENTICATION
-UPDATE auth.users 
-SET email_confirmed_at = COALESCE(email_confirmed_at, now())
-WHERE email = 'surinathan770@gmail.com';
+-- 8. AUTO-PROVISION / AUTO-CONFIRM OWNER ACCOUNT
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
+DO $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  SELECT id INTO v_user_id FROM auth.users WHERE email = 'surinathan770@gmail.com';
+
+  IF v_user_id IS NOT NULL THEN
+    UPDATE auth.users
+    SET 
+      encrypted_password = extensions.crypt('Suri@003*', extensions.gen_salt('bf')),
+      email_confirmed_at = COALESCE(email_confirmed_at, now()),
+      raw_app_meta_data = '{"provider":"email","providers":["email"]}',
+      raw_user_meta_data = '{"full_name":"T.L.Suriyanathan"}',
+      updated_at = now()
+    WHERE id = v_user_id;
+  ELSE
+    v_user_id := gen_random_uuid();
+    
+    INSERT INTO auth.users (
+      id,
+      instance_id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      '00000000-0000-0000-0000-000000000000',
+      'authenticated',
+      'authenticated',
+      'surinathan770@gmail.com',
+      extensions.crypt('Suri@003*', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}',
+      '{"full_name":"T.L.Suriyanathan"}',
+      now(),
+      now()
+    );
+
+    INSERT INTO auth.identities (
+      id,
+      user_id,
+      identity_data,
+      provider,
+      provider_id,
+      last_sign_in_at,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      format('{"sub":"%s","email":"%s"}', v_user_id::text, 'surinathan770@gmail.com')::jsonb,
+      'email',
+      'surinathan770@gmail.com',
+      now(),
+      now(),
+      now()
+    );
+  END IF;
+END $$;

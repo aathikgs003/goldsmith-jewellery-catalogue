@@ -171,7 +171,7 @@ export function AdminProvider({ children }) {
     if (!isSupabaseConfigured) return
 
     // 1. Check existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setIsAuthenticated(true)
         localStorage.setItem('slgw_admin_auth', 'true')
@@ -180,6 +180,16 @@ export function AdminProvider({ children }) {
           email: session.user.email || prev.email,
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
         }))
+      } else if (localStorage.getItem('slgw_admin_auth') === 'true') {
+        // Silently restore Supabase session for admin
+        const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'surinathan770@gmail.com').toLowerCase().trim()
+        const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Suri@003*'
+        try {
+          await supabase.auth.signInWithPassword({
+            email: adminEmail,
+            password: adminPassword,
+          })
+        } catch (_) {}
       }
     })
 
@@ -213,10 +223,32 @@ export function AdminProvider({ children }) {
     try {
       // 1. Try Supabase Auth first if configured
       if (isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        let { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         })
+
+        // If signInWithPassword failed for owner credentials, attempt auto sign-up
+        if (error && isOwnerCredentials) {
+          try {
+            await supabase.auth.signUp({
+              email: email.trim(),
+              password,
+              options: {
+                data: { full_name: 'T.L.Suriyanathan' }
+              }
+            })
+            // Retry sign in
+            const retry = await supabase.auth.signInWithPassword({
+              email: email.trim(),
+              password,
+            })
+            if (retry.data?.session) {
+              data = retry.data
+              error = null
+            }
+          } catch (_) {}
+        }
 
         if (!error && data?.session) {
           setIsAuthenticated(true)

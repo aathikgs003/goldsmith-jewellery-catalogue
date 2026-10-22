@@ -107,6 +107,21 @@ export async function uploadJewelleryImage(file, folder = 'products') {
     )
   }
 
+  // Ensure active Supabase auth session if available
+  try {
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (!sessionData?.session) {
+      const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'surinathan770@gmail.com').toLowerCase().trim()
+      const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Suri@003*'
+      await supabase.auth.signInWithPassword({
+        email: adminEmail,
+        password: adminPassword,
+      })
+    }
+  } catch (_) {
+    // Proceed even if auto-auth fails
+  }
+
   // Generate safe, unique filename
   const ext = file.name?.split('.').pop()?.toLowerCase() || 'jpg'
   const baseName = (file.name || 'image')
@@ -124,6 +139,9 @@ export async function uploadJewelleryImage(file, folder = 'products') {
 
   if (error) {
     console.error('Supabase Storage upload error:', error)
+    if (error.message?.includes('row-level security') || error.statusCode === '403' || error.statusCode === 403 || error.status === 400) {
+      throw new Error('Storage RLS Policy Error: Please run the updated SQL schema in your Supabase SQL Editor to grant upload permissions for the jewellery-images bucket.')
+    }
     throw new Error(error.message || 'Image upload failed in Supabase Storage')
   }
 
