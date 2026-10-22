@@ -235,6 +235,20 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
+
+              {/* Admin Button on Right Side of Heart */}
+              <Link
+                to="/admin"
+                aria-label="Admin Portal"
+                title="Admin Portal"
+                className="relative flex items-center justify-center p-0.5 rounded-full hover:ring-2 hover:ring-[#C4933D]/60 hover:scale-105 transition-all ml-0.5 sm:ml-1 group flex-shrink-0"
+              >
+                <img
+                  src="/admin-logo.png"
+                  alt="Admin"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shadow-xs border border-[#C4933D]/50 group-hover:border-[#C4933D] transition-colors"
+                />
+              </Link>
             </div>
           </div>
         </div>
