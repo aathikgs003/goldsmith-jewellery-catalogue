@@ -14,6 +14,10 @@ import {
   deleteCategoryFromSupabase,
   uploadJewelleryImage,
   seedInitialDataToSupabase,
+  fetchOrdersFromSupabase,
+  insertOrderToSupabase,
+  updateOrderStatusInSupabase,
+  deleteOrderFromSupabase,
 } from '../services/supabaseService'
 
 const AdminContext = createContext(null)
@@ -388,9 +392,10 @@ export function AdminProvider({ children }) {
     setCategoriesError(null)
 
     try {
-      const [remoteCats, remoteProds] = await Promise.all([
+      const [remoteCats, remoteProds, remoteOrders] = await Promise.all([
         fetchCategoriesFromSupabase(),
         fetchProductsFromSupabase(),
+        fetchOrdersFromSupabase(),
       ])
 
       // Handle categories
@@ -418,7 +423,15 @@ export function AdminProvider({ children }) {
         if (remoteProds.length > 0) {
           setProducts(remoteProds)
           localStorage.setItem('slgw_admin_products', JSON.stringify(remoteProds))
-        } else if (autoSeedIfEmpty && remoteProds.length === 0) {
+        }
+      }
+      // Handle orders
+      if (Array.isArray(remoteOrders) && remoteOrders.length > 0) {
+        setEnquiries(remoteOrders)
+        localStorage.setItem('slgw_admin_enquiries', JSON.stringify(remoteOrders))
+      }
+
+      if (Array.isArray(remoteProds) && remoteProds.length === 0 && autoSeedIfEmpty) {
           console.info('Seeding initial products to Supabase...')
           try {
             const seedResult = await seedInitialDataToSupabase(initialProducts, [])
@@ -432,7 +445,6 @@ export function AdminProvider({ children }) {
             console.warn('Auto-seed products notice:', seedErr.message)
           }
         }
-      }
     } catch (err) {
       console.warn('Error syncing with Supabase (using cached catalogue):', err.message)
       setProductsError(err.message)
@@ -477,6 +489,20 @@ export function AdminProvider({ children }) {
               if (Array.isArray(prods) && prods.length > 0) {
                 setProducts(prods)
                 localStorage.setItem('slgw_admin_products', JSON.stringify(prods))
+              }
+            })
+            .catch(() => {})
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          fetchOrdersFromSupabase()
+            .then((ords) => {
+              if (Array.isArray(ords) && ords.length > 0) {
+                setEnquiries(ords)
+                localStorage.setItem('slgw_admin_enquiries', JSON.stringify(ords))
               }
             })
             .catch(() => {})
@@ -694,7 +720,7 @@ export function AdminProvider({ children }) {
     localStorage.setItem('slgw_admin_enquiries', JSON.stringify(enquiries))
   }, [enquiries])
 
-    const updateEnquiryStatus = (id, status) => {
+  const updateEnquiryStatus = (id, status) => {
     updateOrderStatus(id, status)
   }
 
@@ -703,18 +729,11 @@ export function AdminProvider({ children }) {
       prev.map((e) => (e.id === id ? { ...e, status } : e))
     )
     if (isSupabaseConfigured) {
-      try {
-        await supabase
-          .from('orders')
-          .update({ status, updated_at: new Date().toISOString() })
-          .eq('id', id)
-      } catch (err) {
-        console.warn('Could not update order in Supabase:', err.message)
-      }
+      await updateOrderStatusInSupabase(id, status)
     }
   }
 
-  const addOrder = async (orderData) => {
+    const addOrder = async (orderData) => {
     const orderId = `ORD-${Date.now().toString().slice(-6)}`
     const newOrder = {
       id: orderId,
@@ -726,7 +745,7 @@ export function AdminProvider({ children }) {
       category: orderData.category || '',
       requestedWeight: orderData.requestedWeight || '',
       baseWeight: orderData.baseWeight || '',
-      consultationType: orderData.consultationType || 'Showroom Consultation',
+      consultationType: orderData.consultationType || 'In-Store Showroom Consultation',
       message: orderData.notes || orderData.message || '',
       image: orderData.image || '',
       date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
@@ -734,34 +753,22 @@ export function AdminProvider({ children }) {
       createdAt: new Date().toISOString(),
     }
 
-    setEnquiries((prev) => [newOrder, ...prev])
-
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('orders').insert([
-          {
-            id: newOrder.id,
-            customer_name: newOrder.name,
-            contact: newOrder.contact,
-            email: newOrder.email,
-            design_name: newOrder.design,
-            design_id: newOrder.designId,
-            category: newOrder.category,
-            requested_weight: newOrder.requestedWeight,
-            base_weight: newOrder.baseWeight,
-            consultation_type: newOrder.consultationType,
-            notes: newOrder.message,
-            image: newOrder.image,
-            status: newOrder.status,
-            created_at: newOrder.createdAt,
-          },
-        ])
+        const saved = await insertOrderToSupabase(newOrder)
+        const finalOrder = saved || newOrder
+        setEnquiries((prev) => [finalOrder, ...prev.filter((o) => o.id !== finalOrder.id)])
+        localStorage.setItem('slgw_admin_enquiries', JSON.stringify([finalOrder, ...enquiries.filter((o) => o.id !== finalOrder.id)]))
+        return finalOrder
       } catch (err) {
-        console.warn('Supabase order insert notice:', err.message)
+        console.error('Supabase order insert failed:', err)
+        setEnquiries((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
+        return newOrder
       }
+    } else {
+      setEnquiries((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
+      return newOrder
     }
-
-    return newOrder
   }
 
   const addEnquiry = (enq) => {

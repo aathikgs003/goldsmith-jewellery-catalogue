@@ -422,3 +422,117 @@ export async function seedInitialDataToSupabase(productsList = [], categoriesLis
     productsCount: productRows.length,
   }
 }
+
+// ─── Database Operations: Orders & Custom Enquiries ─────────────────────────
+
+export function mapOrderFromRow(row) {
+  if (!row) return null
+  return {
+    id: row.id,
+    name: row.customer_name || row.name || 'Anonymous',
+    contact: row.contact || '',
+    email: row.email || '',
+    design: row.design_name || row.design || 'Custom Jewellery',
+    designId: row.design_id || row.designId || '',
+    category: row.category || '',
+    requestedWeight: row.requested_weight || row.requestedWeight || '',
+    baseWeight: row.base_weight || row.baseWeight || '',
+    consultationType: row.consultation_type || row.consultationType || 'In-Store Showroom Consultation',
+    message: row.notes || row.message || '',
+    image: row.image || '',
+    status: row.status || 'Order Received',
+    date: row.created_at
+      ? new Date(row.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+    createdAt: row.created_at || new Date().toISOString(),
+  }
+}
+
+export function mapOrderToRow(order) {
+  return {
+    id: order.id,
+    customer_name: order.name,
+    contact: order.contact,
+    email: order.email || '',
+    design_name: order.design || order.designName || 'Custom Jewellery',
+    design_id: order.designId || '',
+    category: order.category || '',
+    requested_weight: order.requestedWeight || '',
+    base_weight: order.baseWeight || '',
+    consultation_type: order.consultationType || 'In-Store Showroom Consultation',
+    notes: order.message || order.notes || '',
+    image: order.image || '',
+    status: order.status || 'Order Received',
+    created_at: order.createdAt || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+export async function fetchOrdersFromSupabase() {
+  if (!isSupabaseConfigured) return null
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.warn('Orders fetch warning in Supabase:', error.message)
+      return null
+    }
+
+    return (data || []).map(mapOrderFromRow).filter(Boolean)
+  } catch (err) {
+    console.warn('fetchOrdersFromSupabase failed:', err.message)
+    return null
+  }
+}
+
+export async function insertOrderToSupabase(order) {
+  if (!isSupabaseConfigured) return order
+
+  const row = mapOrderToRow(order)
+
+  const { data, error } = await supabase
+    .from('orders')
+    .insert([row])
+    .select()
+
+  if (error) {
+    console.error('Supabase order insert error:', error)
+    throw new Error(error.message || 'Failed to save order in database')
+  }
+
+  const saved = Array.isArray(data) ? data[0] : data
+  return saved ? mapOrderFromRow(saved) : order
+}
+
+export async function updateOrderStatusInSupabase(id, status) {
+  if (!isSupabaseConfigured) return true
+  try {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+    return true
+  } catch (err) {
+    console.warn('updateOrderStatusInSupabase failed:', err.message)
+    return false
+  }
+}
+
+export async function deleteOrderFromSupabase(id) {
+  if (!isSupabaseConfigured) return true
+  try {
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    return true
+  } catch (err) {
+    console.warn('deleteOrderFromSupabase failed:', err.message)
+    return false
+  }
+}
