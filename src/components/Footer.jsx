@@ -2,10 +2,16 @@ import { Link } from 'react-router-dom'
 import { MapPin, Phone, Mail } from 'lucide-react'
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from './SocialIcons'
 import { siteConfig } from '../config/siteConfig'
-import { categories } from '../data/categories'
+import { categories as defaultCategories } from '../data/categories'
+import { useAdmin } from '../context/AdminContext'
 import BrandLogo from './BrandLogo'
 
 export default function Footer() {
+  const adminCtx = useAdmin()
+  const displayCategories =
+    adminCtx?.categories && adminCtx.categories.length > 0
+      ? adminCtx.categories.filter((c) => c.status !== 'Inactive')
+      : defaultCategories
   return (
     <footer className="bg-[#351016] text-[#FFFCF7] border-t border-[#45151D] relative overflow-hidden">
       {/* Subtle Ornamental Mandala Watermark in Footer Corner */}
@@ -26,6 +32,9 @@ export default function Footer() {
         {/* Col 1: Brand & Bio */}
         <div className="space-y-4">
           <BrandLogo variant="light" />
+          <p className="text-[11px] font-semibold text-[#D8B36A] tracking-wider uppercase">
+            Prop. {siteConfig.owner || 'T.L.Suriyanathan'}
+          </p>
 
           <p className="text-xs leading-relaxed text-[#F5EBDD]/80 font-light max-w-sm">
             Traditional designs, timeless elegance and exceptional craftsmanship. Explore our wide range of gold jewellery collections.
@@ -100,7 +109,7 @@ export default function Footer() {
             Collections
           </h4>
           <ul className="space-y-2 text-xs text-[#F5EBDD]/80">
-            {categories.map((cat) => (
+            {displayCategories.map((cat) => (
               <li key={cat.slug}>
                 <Link
                   to={`/collections/${cat.slug}`}
@@ -128,16 +137,31 @@ export default function Footer() {
               <span>{siteConfig.address}</span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Phone size={15} className="text-[#C4933D] flex-shrink-0" />
-              <a href={`tel:${siteConfig.phone}`} className="hover:text-white transition-colors">
-                {siteConfig.phone}
-              </a>
+            <div className="flex items-start gap-2.5">
+              <Phone size={15} className="text-[#C4933D] mt-0.5 flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <a
+                  href={`tel:${siteConfig.phone.replace(/[^0-9+]/g, '')}`}
+                  className="hover:text-white transition-colors font-mono"
+                >
+                  <span className="text-[10px] text-[#D8B36A] mr-1">M1:</span>
+                  {siteConfig.phone}
+                </a>
+                {siteConfig.phone2 && (
+                  <a
+                    href={`tel:${siteConfig.phone2.replace(/[^0-9+]/g, '')}`}
+                    className="hover:text-white transition-colors font-mono"
+                  >
+                    <span className="text-[10px] text-[#D8B36A] mr-1">M2:</span>
+                    {siteConfig.phone2}
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2.5">
               <Mail size={15} className="text-[#C4933D] flex-shrink-0" />
-              <a href={`mailto:${siteConfig.email}`} className="hover:text-white transition-colors">
+              <a href={`mailto:${siteConfig.email}`} className="hover:text-white transition-colors truncate">
                 {siteConfig.email}
               </a>
             </div>

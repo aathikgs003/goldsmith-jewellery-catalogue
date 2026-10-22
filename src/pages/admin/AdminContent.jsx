@@ -83,7 +83,7 @@ export default function AdminContent() {
       'At Lakshmanan Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration.',
     storyText2:
       websiteContent.about?.storyText2 ||
-      'From our atelier in Ullal, Mangalore, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms.',
+      'From our atelier in Avudayanoor, Tenkasi, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms.',
     storyImage:
       websiteContent.about?.storyImage ||
       'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000&q=80',
@@ -94,7 +94,7 @@ export default function AdminContent() {
     showroomTitle: websiteContent.about?.showroomTitle || 'Experience Our Collections in Person',
     showroomText:
       websiteContent.about?.showroomText ||
-      'We welcome you to visit our Ullal showroom to experience our gold jewellery collections first-hand, consult directly with our master goldsmiths, and enjoy a warm, personalized shopping experience.',
+      'We welcome you to visit our Avudayanoor showroom to experience our gold jewellery collections first-hand, consult directly with our master goldsmiths, and enjoy a warm, personalized shopping experience.',
     showroomImage:
       websiteContent.about?.showroomImage ||
       'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=800&q=80',
@@ -107,10 +107,10 @@ export default function AdminContent() {
     subtitle:
       websiteContent.contact?.subtitle ||
       'Have questions about a design, custom jewellery, or visiting our showroom? Reach out to our master goldsmiths.',
-    address: websiteContent.contact?.address || storeDetails?.address || 'Ullal Main Road, (Your Location), India',
-    phone: websiteContent.contact?.phone || storeDetails?.phone || '+91 9344894659',
-    whatsapp: websiteContent.contact?.whatsapp || storeDetails?.whatsapp || '919344894659',
-    email: websiteContent.contact?.email || storeDetails?.email || 'somidhari777@gmail.com',
+    address: websiteContent.contact?.address || storeDetails?.address || 'Kadayam - Pavoorchatram Road, Avudayanoor, Tenkasi, Tamil Nadu 627415',
+    phone: websiteContent.contact?.phone || storeDetails?.phone || '+91 94863 37947',
+    whatsapp: websiteContent.contact?.whatsapp || storeDetails?.phone2 || storeDetails?.whatsapp || '+91 99945 41091',
+    email: websiteContent.contact?.email || storeDetails?.email || 'surinathan770@gmail.com',
     hours:
       websiteContent.contact?.hours ||
       storeDetails?.hours ||
@@ -1040,23 +1040,25 @@ export default function AdminContent() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                  Phone Display Number
+                  Owner Mobile 1
                 </label>
                 <input
                   type="text"
                   value={contactForm.phone}
                   onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  placeholder="+91 94863 37947"
                   className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1">
-                  Direct Contact Phone (e.g. 919344894659)
+                  Owner Mobile 2
                 </label>
                 <input
                   type="text"
                   value={contactForm.whatsapp}
                   onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })}
+                  placeholder="+91 99945 41091"
                   className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>

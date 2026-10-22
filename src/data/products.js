@@ -201,8 +201,8 @@ export const products = [
     description:
       'Contemporary filigree openwork bangle patterned with delicate blooming petals and diamond-cut facets that catch light.',
     images: [
-      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80',
       'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80',
+      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&q=80',
     ],
     price: null,
     weight: '16.4g',

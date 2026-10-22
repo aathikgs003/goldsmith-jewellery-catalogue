@@ -9,6 +9,7 @@ import {
   Check,
   ExternalLink,
   Navigation,
+  User,
 } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 
@@ -17,18 +18,20 @@ export default function AdminSettings() {
 
   const [formData, setFormData] = useState({
     name: storeDetails.name || 'Lakshmanan Gold Works',
+    owner: storeDetails.owner || 'T.L.Suriyanathan',
     address:
       storeDetails.address ||
-      'Shop No. 12, Main Bazaar Road, Near Old Bus Stand, Ullal Main Road, Mangalore, Karnataka 575020',
-    phone: storeDetails.phone || '+91 98451 23456',
-    whatsapp: storeDetails.whatsapp || '+91 98451 23456',
-    email: storeDetails.email || 'contact@lakshmanangoldworks.com',
+      'Kadayam - Pavoorchatram Road, Avudayanoor, Tenkasi, Tamil Nadu 627415',
+    phone: storeDetails.phone || '+91 94863 37947',
+    phone2: storeDetails.phone2 || storeDetails.whatsapp || '+91 99945 41091',
+    whatsapp: storeDetails.whatsapp || storeDetails.phone2 || '+91 99945 41091',
+    email: storeDetails.email || 'surinathan770@gmail.com',
     hours:
       storeDetails.hours ||
       'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM',
     mapUrl:
       storeDetails.mapUrl ||
-      'https://maps.google.com/?q=Ullal+Main+Road+Mangalore',
+      'https://www.google.com/maps/dir/?api=1&destination=8.883108247201784,77.38855234125623',
   })
 
   const [successToast, setSuccessToast] = useState('')
@@ -110,6 +113,27 @@ export default function AdminSettings() {
             </div>
           </div>
 
+          {/* Proprietor / Owner Name */}
+          <div>
+            <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
+              Proprietor / Owner Name <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <User
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#786D63]"
+              />
+              <input
+                type="text"
+                required
+                value={formData.owner}
+                onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
+                placeholder="T.L.Suriyanathan"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
+              />
+            </div>
+          </div>
+
           {/* Address */}
           <div>
             <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
@@ -130,7 +154,7 @@ export default function AdminSettings() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
-                Primary Phone
+                Owner Mobile 1 <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Phone
@@ -139,8 +163,10 @@ export default function AdminSettings() {
                 />
                 <input
                   type="text"
+                  required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+91 94863 37947"
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
@@ -148,7 +174,7 @@ export default function AdminSettings() {
 
             <div>
               <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
-                Secondary / Mobile Phone
+                Owner Mobile 2
               </label>
               <div className="relative">
                 <Phone
@@ -157,8 +183,15 @@ export default function AdminSettings() {
                 />
                 <input
                   type="text"
-                  value={formData.whatsapp}
-                  onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                  value={formData.phone2 || formData.whatsapp}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      phone2: e.target.value,
+                      whatsapp: e.target.value,
+                    })
+                  }
+                  placeholder="+91 99945 41091"
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
                 />
               </div>
@@ -168,7 +201,7 @@ export default function AdminSettings() {
           {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-[#30231F] uppercase tracking-wider mb-1.5">
-              Official Email Address
+              Official / Owner Email Address
             </label>
             <div className="relative">
               <Mail
@@ -179,6 +212,7 @@ export default function AdminSettings() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="surinathan770@gmail.com"
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#D8B36A]/50 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
               />
             </div>
@@ -281,7 +315,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="bg-[#30231F] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg mt-1 border border-[#D8B36A] flex items-center gap-1">
                   <span>📍</span>
-                  <span>Ullal Main Road</span>
+                  <span>Kadayam - Pavoorchatram Road</span>
                 </div>
                 <div className="w-3 h-1.5 bg-[#30231F]/30 rounded-full blur-xs mt-1" />
               </div>
@@ -297,7 +331,7 @@ export default function AdminSettings() {
                   {formData.name}
                 </h3>
                 <p className="text-xs text-[#C4933D] font-medium tracking-wide">
-                  TRADITIONAL GOLDSMITH & PURE GOLD JEWELLERY
+                  Proprietor: {formData.owner || 'T.L.Suriyanathan'}
                 </p>
               </div>
 
@@ -306,9 +340,19 @@ export default function AdminSettings() {
                 <span>{formData.address}</span>
               </div>
 
+              <div className="text-xs text-[#786D63] flex items-start gap-2.5">
+                <Phone size={15} className="text-[#C4933D] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5 font-mono text-[11px]">
+                  <span>M1: {formData.phone}</span>
+                  {(formData.phone2 || formData.whatsapp) && (
+                    <span>M2: {formData.phone2 || formData.whatsapp}</span>
+                  )}
+                </div>
+              </div>
+
               <div className="text-xs text-[#786D63] flex items-center gap-2.5">
-                <Phone size={15} className="text-[#C4933D] flex-shrink-0" />
-                <span>{formData.phone}</span>
+                <Mail size={15} className="text-[#C4933D] flex-shrink-0" />
+                <span className="truncate">{formData.email}</span>
               </div>
 
               <div className="text-xs text-[#786D63] flex items-start gap-2.5">

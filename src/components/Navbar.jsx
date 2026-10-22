@@ -386,9 +386,12 @@ export default function Navbar() {
                 >
                   <span>Contact Us</span>
                 </Link>
-                <p className="text-[11px] text-[#786D63] text-center">
-                  {siteConfig.phone} &bull; {siteConfig.address}
-                </p>
+                <div className="text-[11px] text-[#786D63] text-center space-y-0.5">
+                  <p className="font-semibold text-[#30231F]">Prop. {siteConfig.owner || 'T.L.Suriyanathan'}</p>
+                  <p className="font-mono text-[10.5px]">
+                    {siteConfig.phone} &bull; {siteConfig.phone2}
+                  </p>
+                </div>
               </div>
             </motion.aside>
           </>

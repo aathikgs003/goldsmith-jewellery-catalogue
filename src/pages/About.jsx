@@ -10,6 +10,7 @@ import {
   Phone,
   Clock,
   Sparkles,
+  Award,
 } from 'lucide-react'
 import { useAdmin } from '../context/AdminContext'
 import { siteConfig } from '../config/siteConfig'
@@ -431,6 +432,17 @@ export default function About() {
             </h3>
 
             <div className="space-y-3 text-xs text-[#786D63]">
+              {/* Proprietor */}
+              <div className="flex items-start gap-2.5 pb-2 border-b border-[#D8B36A]/15">
+                <Award size={15} className="text-[#C4933D] mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#C4933D] tracking-wider block">Proprietor</span>
+                  <span className="font-bold text-[#30231F] text-xs">
+                    {store.owner || siteConfig.owner || 'T.L.Suriyanathan'}
+                  </span>
+                </div>
+              </div>
+
               {/* Address */}
               <div className="flex items-start gap-2.5">
                 <MapPin size={15} className="text-[#C4933D] mt-0.5 flex-shrink-0" />
@@ -438,14 +450,26 @@ export default function About() {
               </div>
 
               {/* Phone */}
-              <div className="flex items-center gap-2.5">
-                <Phone size={15} className="text-[#C4933D] flex-shrink-0" />
-                <a
-                  href={`tel:${store.phone}`}
-                  className="font-mono text-[#30231F] hover:text-[#C4933D] transition-colors"
-                >
-                  {store.phone}
-                </a>
+              <div className="flex items-start gap-2.5">
+                <Phone size={15} className="text-[#C4933D] mt-0.5 flex-shrink-0" />
+                <div className="flex flex-col gap-0.5">
+                  <a
+                    href={`tel:${(store.phone || siteConfig.phone).replace(/[^0-9+]/g, '')}`}
+                    className="font-mono text-[#30231F] hover:text-[#C4933D] transition-colors"
+                  >
+                    <span className="text-[10px] text-[#C4933D] font-semibold mr-1">Mobile 1:</span>
+                    {store.phone || siteConfig.phone}
+                  </a>
+                  {(store.phone2 || siteConfig.phone2) && (
+                    <a
+                      href={`tel:${(store.phone2 || siteConfig.phone2).replace(/[^0-9+]/g, '')}`}
+                      className="font-mono text-[#30231F] hover:text-[#C4933D] transition-colors"
+                    >
+                      <span className="text-[10px] text-[#C4933D] font-semibold mr-1">Mobile 2:</span>
+                      {store.phone2 || siteConfig.phone2}
+                    </a>
+                  )}
+                </div>
               </div>
 
               {/* Email */}
@@ -453,7 +477,7 @@ export default function About() {
                 <Mail size={15} className="text-[#C4933D] flex-shrink-0" />
                 <a
                   href={`mailto:${store.email || siteConfig.email}`}
-                  className="text-xs text-[#30231F] hover:text-[#C4933D] transition-colors"
+                  className="text-xs text-[#30231F] hover:text-[#C4933D] transition-colors truncate"
                 >
                   {store.email || siteConfig.email}
                 </a>

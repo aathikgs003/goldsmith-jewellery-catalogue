@@ -1,31 +1,39 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, Lock, Mail, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, Loader2 } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 import BrandLogo from '../../components/BrandLogo'
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@gmail.com')
+  const [email, setEmail] = useState('surinathan770@gmail.com')
   const [password, setPassword] = useState('admin123')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
-  const { login } = useAdmin()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login, isSupabaseConfigured } = useAdmin()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const res = login(email, password)
-    if (res.success) {
-      navigate('/admin')
-    } else {
-      setError(res.error)
+    setIsSubmitting(true)
+    try {
+      const res = await login(email, password)
+      if (res.success) {
+        navigate('/admin')
+      } else {
+        setError(res.error || 'Invalid email or password')
+      }
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred during login')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleDemoFill = () => {
-    setEmail('admin@gmail.com')
+    setEmail('surinathan770@gmail.com')
     setPassword('admin123')
     setError('')
   }
@@ -88,7 +96,7 @@ export default function AdminLogin() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@gmail.com"
+                placeholder="surinathan770@gmail.com"
                 className="w-full text-xs bg-[#FFFCF7] border border-[#D8B36A]/50 focus:border-[#C4933D] rounded-xl pl-10 pr-3.5 py-3 outline-none text-[#30231F] transition-colors"
               />
             </div>
@@ -143,19 +151,23 @@ export default function AdminLogin() {
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full py-3.5 bg-[#45151D] hover:bg-[#351016] text-white rounded-xl font-semibold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg mt-2 cursor-pointer"
+            disabled={isSubmitting}
+            className="w-full py-3.5 bg-[#45151D] hover:bg-[#351016] text-white rounded-xl font-semibold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg mt-2 cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            Login
+            {isSubmitting && <Loader2 size={16} className="animate-spin text-[#C4933D]" />}
+            <span>{isSubmitting ? 'Signing In...' : 'Login'}</span>
           </button>
         </form>
 
         {/* Demo Credentials Helper Pill */}
         <div className="mt-6 pt-5 border-t border-[#F5EBDD] text-center">
           <p className="text-[11px] text-[#786D63]">
-            Default Demo Credentials:
+            {isSupabaseConfigured
+              ? 'Supabase Auth Mode (or fallback demo account):'
+              : 'Default Demo Credentials:'}
           </p>
           <div className="inline-block mt-1 bg-[#F5EBDD]/70 px-3 py-1 rounded-lg text-xs font-mono text-[#30231F]">
-            admin@gmail.com / admin123
+            surinathan770@gmail.com / admin123
           </div>
         </div>
       </div>

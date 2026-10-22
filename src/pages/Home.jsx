@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -19,13 +19,28 @@ import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
 import ProductLightbox from '../components/ProductLightbox'
 import SectionOrnament from '../components/SectionOrnament'
-import { categories } from '../data/categories'
+import { categories as defaultCategories } from '../data/categories'
 import { useFeaturedProducts, useFavourites } from '../hooks/useProducts'
 import { siteConfig } from '../config/siteConfig'
 import { useAdmin } from '../context/AdminContext'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GOOGLE MAPS CONFIGURATION (Visit Our Store Section)
+// To update your store map, paste your Google Maps embed iframe `src` URL below:
+// ─────────────────────────────────────────────────────────────────────────────
+const GOOGLE_MAPS_EMBED_URL =
+  'https://www.google.com/maps/embed?pb=!4v1792646509938!6m8!1m7!1sbRXXEEC6nrql_-YILECMuA!2m2!1d8.883108247201784!2d77.38855234125623!3f92.68559314648843!4f-12.973021813108176!5f0.7820865974627469'
+
+// Google Maps directions URL for the "GET DIRECTIONS" button (opens in new tab)
+const GOOGLE_MAPS_DIRECTIONS_URL =
+  'https://www.google.com/maps/dir/?api=1&destination=8.883108247201784,77.38855234125623'
+
 export default function Home() {
-  const { websiteContent } = useAdmin()
+  const { websiteContent, categories: adminCategories } = useAdmin()
+  const displayCategories =
+    adminCategories && adminCategories.length > 0
+      ? adminCategories.filter((c) => c.status !== 'Inactive')
+      : defaultCategories
   const heroData = websiteContent?.hero || {
     eyebrow: 'TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY',
     title: 'Jewellery That Tells Your Story',
@@ -40,7 +55,7 @@ export default function Home() {
     title: 'Latest Designs for Every Occasion',
     subtitle: 'From daily wear to grand celebrations, find the perfect jewellery to match your style.',
     buttonText: 'Explore New Arrivals',
-    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1000&q=80',
+    image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=1000&q=80',
   }
   const customBanner = websiteContent?.homeCustom || {
     eyebrow: 'Bring Your Ideas to Life',
@@ -59,10 +74,8 @@ export default function Home() {
   const featuredProducts = useFeaturedProducts(8)
   const [lightboxProduct, setLightboxProduct] = useState(null)
   const [lightboxPool, setLightboxPool] = useState([])
-  const [carouselIndex, setCarouselIndex] = useState(0)
   const [heroSlide, setHeroSlide] = useState(0)
   const { isFav, toggle } = useFavourites()
-  const carouselContainerRef = useRef(null)
 
   const openLightbox = (product, pool) => {
     setLightboxProduct(product)
@@ -74,10 +87,68 @@ export default function Home() {
     setLightboxPool([])
   }
 
-  // Carousel controls for featured products (4 visible at a time)
-  const maxIndex = Math.max(0, featuredProducts.length - 4)
-  const handlePrev = () => setCarouselIndex((i) => Math.max(0, i - 1))
-  const handleNext = () => setCarouselIndex((i) => Math.min(maxIndex, i + 1))
+  // Single-line horizontal scroll controls for "Featured Designs"
+  const featuredScrollRef = useRef(null)
+  const [canScrollFeaturedLeft, setCanScrollFeaturedLeft] = useState(false)
+  const [canScrollFeaturedRight, setCanScrollFeaturedRight] = useState(true)
+  const [featuredScrollProgress, setFeaturedScrollProgress] = useState(0)
+
+  const checkFeaturedScroll = () => {
+    if (featuredScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = featuredScrollRef.current
+      setCanScrollFeaturedLeft(scrollLeft > 10)
+      setCanScrollFeaturedRight(scrollLeft < scrollWidth - clientWidth - 10)
+      const maxScroll = scrollWidth - clientWidth
+      if (maxScroll > 0) {
+        setFeaturedScrollProgress(Math.min(1, Math.max(0, scrollLeft / maxScroll)))
+      }
+    }
+  }
+
+  useEffect(() => {
+    checkFeaturedScroll()
+    window.addEventListener('resize', checkFeaturedScroll)
+    return () => window.removeEventListener('resize', checkFeaturedScroll)
+  }, [featuredProducts])
+
+  const scrollFeatured = (direction) => {
+    if (featuredScrollRef.current) {
+      const scrollAmount = featuredScrollRef.current.clientWidth * 0.75
+      featuredScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
+
+  // Single-line horizontal scroll controls for "Shop by Category"
+  const categoryScrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const checkCategoryScroll = () => {
+    if (categoryScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = categoryScrollRef.current
+      setCanScrollLeft(scrollLeft > 10)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+    }
+  }
+
+  useEffect(() => {
+    checkCategoryScroll()
+    window.addEventListener('resize', checkCategoryScroll)
+    return () => window.removeEventListener('resize', checkCategoryScroll)
+  }, [])
+
+  const scrollCategory = (direction) => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = categoryScrollRef.current.clientWidth * 0.75
+      categoryScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
 
   return (
     <div className="bg-[#FFFCF7] text-[#30231F]">
@@ -223,7 +294,7 @@ export default function Home() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 2. SHOP BY CATEGORY SECTION */}
+      {/* 2. SHOP BY CATEGORY SECTION (Single-Line Horizontal Scroll) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-10 gap-3">
@@ -237,24 +308,83 @@ export default function Home() {
             <SectionOrnament />
           </div>
 
-          <Link
-            to="/collections"
-            className="text-xs sm:text-sm font-medium text-[#786D63] hover:text-[#C4933D] transition-colors"
-          >
-            Explore Our Wide Range of Collections
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/collections"
+              className="text-xs sm:text-sm font-medium text-[#786D63] hover:text-[#C4933D] transition-colors"
+            >
+              Explore Our Wide Range of Collections
+            </Link>
+
+            {/* Header Arrow Navigation Buttons */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              <button
+                onClick={() => scrollCategory('left')}
+                disabled={!canScrollLeft}
+                aria-label="Previous categories"
+                className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => scrollCategory('right')}
+                disabled={!canScrollRight}
+                aria-label="Next categories"
+                className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* 8 Category Cards Grid (4 columns x 2 rows) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          {categories.map((cat) => (
-            <CategoryCard key={cat.slug} category={cat} />
-          ))}
+        {/* 1-Line Horizontal Scrollable Category Cards Carousel */}
+        <div className="relative group/category-slider">
+          {/* Floating Left Arrow */}
+          <button
+            onClick={() => scrollCategory('left')}
+            disabled={!canScrollLeft}
+            aria-label="Scroll categories left"
+            className={`absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white shadow-md border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] transition-all duration-200 cursor-pointer ${
+              canScrollLeft ? 'opacity-100 scale-100' : 'opacity-0 pointer-events-none scale-90'
+            }`}
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          {/* Single Horizontal Line Cards Strip */}
+          <div
+            ref={categoryScrollRef}
+            onScroll={checkCategoryScroll}
+            className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-3 px-1 -mx-1"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {displayCategories.map((cat) => (
+              <div
+                key={cat.slug}
+                className="w-[230px] sm:w-[260px] md:w-[280px] lg:w-[295px] shrink-0 snap-start"
+              >
+                <CategoryCard category={cat} />
+              </div>
+            ))}
+          </div>
+
+          {/* Floating Right Arrow */}
+          <button
+            onClick={() => scrollCategory('right')}
+            disabled={!canScrollRight}
+            aria-label="Scroll categories right"
+            className={`absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white shadow-md border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] transition-all duration-200 cursor-pointer ${
+              canScrollRight ? 'opacity-100 scale-100' : 'opacity-0 pointer-events-none scale-90'
+            }`}
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 3. FEATURED DESIGNS SECTION (With Slider Controls) */}
+      {/* 3. FEATURED DESIGNS SECTION (Single-Line Horizontal Scroll) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 bg-[#F5EBDD]/60 border-y border-[#D8B36A]/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -269,68 +399,111 @@ export default function Home() {
               <SectionOrnament />
             </div>
 
-            <Link
-              to="/collections"
-              className="text-xs sm:text-sm font-semibold text-[#786D63] hover:text-[#C4933D] flex items-center gap-1 transition-colors"
-            >
-              <span>View All Designs</span>
-              <ArrowRight size={13} />
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/collections"
+                className="text-xs sm:text-sm font-semibold text-[#786D63] hover:text-[#C4933D] flex items-center gap-1 transition-colors"
+              >
+                <span>View All Designs</span>
+                <ArrowRight size={13} />
+              </Link>
+
+              {/* Header Navigation Arrows */}
+              <div className="hidden sm:flex items-center gap-1.5">
+                <button
+                  onClick={() => scrollFeatured('left')}
+                  disabled={!canScrollFeaturedLeft}
+                  aria-label="Previous featured designs"
+                  className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  onClick={() => scrollFeatured('right')}
+                  disabled={!canScrollFeaturedRight}
+                  aria-label="Next featured designs"
+                  className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Carousel with Left & Right Arrows */}
-          <div className="relative">
-            {/* Prev Button */}
+          {/* 1-Line Horizontal Scrollable Featured Products Strip */}
+          <div className="relative group/featured-slider">
+            {/* Floating Left Arrow */}
             <button
-              onClick={handlePrev}
-              disabled={carouselIndex === 0}
+              onClick={() => scrollFeatured('left')}
+              disabled={!canScrollFeaturedLeft}
               aria-label="Previous featured designs"
-              className="flex absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer"
+              className={`flex absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] transition-all duration-200 cursor-pointer ${
+                canScrollFeaturedLeft ? 'opacity-100 scale-100' : 'opacity-0 pointer-events-none scale-90'
+              }`}
             >
               <ChevronLeft size={18} />
             </button>
 
-            {/* Cards Grid: 4 items at a time */}
+            {/* Single Horizontal Line Cards Strip */}
             <div
-              ref={carouselContainerRef}
-              className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6"
+              ref={featuredScrollRef}
+              onScroll={checkFeaturedScroll}
+              className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-3 px-1 -mx-1"
+              style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              {featuredProducts.slice(carouselIndex, carouselIndex + 4).map((product) => (
-                <ProductCard
+              {featuredProducts.map((product) => (
+                <div
                   key={product.id}
-                  product={product}
-                  onOpenLightbox={(p) => openLightbox(p, featuredProducts)}
-                  isFav={isFav(product.id)}
-                  onToggleFav={toggle}
-                />
+                  className="w-[230px] sm:w-[260px] md:w-[280px] lg:w-[295px] shrink-0 snap-start flex flex-col"
+                >
+                  <ProductCard
+                    product={product}
+                    onOpenLightbox={(p) => openLightbox(p, featuredProducts)}
+                    isFav={isFav(product.id)}
+                    onToggleFav={toggle}
+                  />
+                </div>
               ))}
             </div>
 
-            {/* Next Button */}
+            {/* Floating Right Arrow */}
             <button
-              onClick={handleNext}
-              disabled={carouselIndex >= maxIndex}
+              onClick={() => scrollFeatured('right')}
+              disabled={!canScrollFeaturedRight}
               aria-label="Next featured designs"
-              className="flex absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer"
+              className={`flex absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] transition-all duration-200 cursor-pointer ${
+                canScrollFeaturedRight ? 'opacity-100 scale-100' : 'opacity-0 pointer-events-none scale-90'
+              }`}
             >
               <ChevronRight size={18} />
             </button>
           </div>
 
-          {/* Carousel Pagination Dots */}
+          {/* Interactive Scroll Progress Dots */}
           <div className="flex items-center justify-center gap-2 mt-8">
-            {[0, 1, 2, 3].map((dot) => (
-              <button
-                key={dot}
-                onClick={() => setCarouselIndex(Math.min(dot, maxIndex))}
-                aria-label={`Go to slide ${dot + 1}`}
-                className={`h-1.5 rounded-full transition-all ${
-                  carouselIndex === dot
-                    ? 'w-6 bg-[#C4933D]'
-                    : 'w-2 bg-[#D8B36A]/40 hover:bg-[#C4933D]/60'
-                }`}
-              />
-            ))}
+            {[0, 1, 2, 3].map((dot) => {
+              const isActive = Math.round(featuredScrollProgress * 3) === dot
+              return (
+                <button
+                  key={dot}
+                  onClick={() => {
+                    if (featuredScrollRef.current) {
+                      const maxScroll = featuredScrollRef.current.scrollWidth - featuredScrollRef.current.clientWidth
+                      featuredScrollRef.current.scrollTo({
+                        left: (dot / 3) * maxScroll,
+                        behavior: 'smooth',
+                      })
+                    }
+                  }}
+                  aria-label={`Go to section ${dot + 1}`}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    isActive
+                      ? 'w-6 bg-[#C4933D]'
+                      : 'w-2 bg-[#D8B36A]/40 hover:bg-[#C4933D]/60'
+                  }`}
+                />
+              )
+            })}
           </div>
         </div>
       </section>
@@ -615,6 +788,19 @@ export default function Home() {
             {/* Card 1: Contact Details */}
             <div className="bg-white rounded-2xl p-6 border border-[#D8B36A]/40 shadow-xs flex flex-col justify-between space-y-5">
               <div className="space-y-4">
+                {/* Proprietor / Owner */}
+                <div className="flex items-start gap-3 pb-3 border-b border-[#D8B36A]/20">
+                  <div className="w-8 h-8 rounded-full bg-[#F5EBDD] flex items-center justify-center text-[#C4933D] flex-shrink-0 mt-0.5">
+                    <Award size={16} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#C4933D] tracking-wider block">Proprietor</span>
+                    <h4 className="text-sm font-bold text-[#30231F]" style={{ fontFamily: "'Playfair Display', serif" }}>
+                      {siteConfig.owner || 'T.L.Suriyanathan'}
+                    </h4>
+                  </div>
+                </div>
+
                 {/* Location */}
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#F5EBDD] flex items-center justify-center text-[#C4933D] flex-shrink-0 mt-0.5">
@@ -634,13 +820,25 @@ export default function Home() {
                     <Phone size={15} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-[#30231F]">Phone</h4>
-                    <a
-                      href={`tel:${siteConfig.phone}`}
-                      className="text-xs text-[#786D63] hover:text-[#C4933D] font-mono mt-0.5 block"
-                    >
-                      {siteConfig.phone}
-                    </a>
+                    <h4 className="text-xs font-bold text-[#30231F]">Direct Phone</h4>
+                    <div className="space-y-0.5 mt-0.5">
+                      <a
+                        href={`tel:${siteConfig.phone.replace(/[^0-9+]/g, '')}`}
+                        className="text-xs text-[#786D63] hover:text-[#C4933D] font-mono block"
+                      >
+                        <span className="text-[10px] text-[#C4933D] font-semibold mr-1">Mobile 1:</span>
+                        {siteConfig.phone}
+                      </a>
+                      {siteConfig.phone2 && (
+                        <a
+                          href={`tel:${siteConfig.phone2.replace(/[^0-9+]/g, '')}`}
+                          className="text-xs text-[#786D63] hover:text-[#C4933D] font-mono block"
+                        >
+                          <span className="text-[10px] text-[#C4933D] font-semibold mr-1">Mobile 2:</span>
+                          {siteConfig.phone2}
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -653,7 +851,7 @@ export default function Home() {
                     <h4 className="text-xs font-bold text-[#30231F]">Email</h4>
                     <a
                       href={`mailto:${siteConfig.email}`}
-                      className="text-xs text-[#786D63] hover:text-[#C4933D] mt-0.5 block"
+                      className="text-xs text-[#786D63] hover:text-[#C4933D] mt-0.5 block truncate"
                     >
                       {siteConfig.email}
                     </a>
@@ -676,46 +874,29 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Card 2: Interactive Stylized Map */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-[#D8B36A]/40 shadow-xs relative flex flex-col min-h-[260px]">
-              {/* Map Canvas Visual */}
-              <div className="relative w-full h-full bg-[#E5E3DF] overflow-hidden flex items-center justify-center">
-                {/* SVG Stylized Map roads and city grid */}
-                <svg className="w-full h-full object-cover opacity-85" viewBox="0 0 400 300" fill="none">
-                  <rect width="400" height="300" fill="#E8E6E1" />
-                  {/* Water / Greenery */}
-                  <path d="M0 40 Q80 80 120 120 T200 220 L250 300 L0 300 Z" fill="#DCE5DC" opacity="0.6" />
-                  {/* Roads */}
-                  <path d="M-20 120 L420 160" stroke="#FFFFFF" strokeWidth="12" />
-                  <path d="M-20 120 L420 160" stroke="#F1EDE4" strokeWidth="8" />
-                  <path d="M190 -20 L210 320" stroke="#FFFFFF" strokeWidth="10" />
-                  <path d="M190 -20 L210 320" stroke="#F1EDE4" strokeWidth="6" />
-                  <path d="M60 20 L350 280" stroke="#FFFFFF" strokeWidth="6" />
-                  <path d="M60 20 L350 280" stroke="#FAF7F2" strokeWidth="4" />
-                  <path d="M280 20 L80 280" stroke="#FFFFFF" strokeWidth="6" />
-                </svg>
+            {/* Card 2: Interactive Google Maps Embed */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-[#D8B36A]/40 shadow-xs relative flex flex-col min-h-[300px] md:min-h-full">
+              <iframe
+                title="Lakshmanan Gold Works Store Location"
+                src={GOOGLE_MAPS_EMBED_URL}
+                className="w-full h-full min-h-[300px] md:min-h-full border-0 flex-1"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
 
-                {/* Map Pin on Ullal Main Road */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center">
-                  <div className="bg-white px-2.5 py-1 rounded-md shadow-md border border-[#C4933D]/40 text-[10px] font-semibold text-[#30231F] whitespace-nowrap mb-1">
-                    📍 Ullal Main Road
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-[#E53935] border-2 border-white flex items-center justify-center text-white shadow-lg animate-bounce">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                </div>
-
-                {/* Expand Map Button */}
-                <a
-                  href={siteConfig.mapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white shadow-md flex items-center justify-center text-[#30231F] hover:text-[#C4933D] transition-colors"
-                  aria-label="Expand map"
-                >
-                  <Maximize2 size={14} />
-                </a>
-              </div>
+              {/* Expand to Google Maps Button */}
+              <a
+                href={GOOGLE_MAPS_DIRECTIONS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/95 hover:bg-white shadow-md flex items-center justify-center text-[#30231F] hover:text-[#C4933D] transition-colors border border-[#D8B36A]/30 z-10"
+                aria-label="Open shop directions in Google Maps"
+                title="Open in Google Maps"
+              >
+                <Maximize2 size={14} />
+              </a>
             </div>
 
             {/* Card 3: Visit Our Showroom Photo & Directions */}
@@ -743,7 +924,7 @@ export default function Home() {
                 </div>
 
                 <a
-                  href={siteConfig.mapUrl}
+                  href={GOOGLE_MAPS_DIRECTIONS_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 w-full bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider py-2.5 px-4 rounded-full transition-colors shadow-xs"

@@ -1,7 +1,20 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { products as initialProducts } from '../data/products'
 import { categories as initialCategories } from '../data/categories'
 import { siteConfig as initialSiteConfig } from '../config/siteConfig'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import {
+  fetchProductsFromSupabase,
+  insertProductToSupabase,
+  updateProductInSupabase,
+  deleteProductFromSupabase,
+  fetchCategoriesFromSupabase,
+  insertCategoryToSupabase,
+  updateCategoryInSupabase,
+  deleteCategoryFromSupabase,
+  uploadJewelleryImage,
+  seedInitialDataToSupabase,
+} from '../services/supabaseService'
 
 const AdminContext = createContext(null)
 
@@ -39,7 +52,7 @@ const INITIAL_ENQUIRIES = [
   {
     id: 'ENQ-004',
     name: 'Ananya',
-    contact: '9845123456',
+    contact: '9876543210',
     design: 'EAR-001',
     category: 'Earrings',
     message: 'Are temple jhumkas available in 22KT?',
@@ -87,14 +100,14 @@ const INITIAL_CONTENT = {
     storyText1:
       'At Lakshmanan Gold Works, jewellery is not merely an ornament—it is an heirloom of sacred heritage, intimate devotion, and personal celebration. Founded with a vision to preserve the authentic goldsmithing traditions of South India, we have been crafting bespoke gold jewellery for generations.',
     storyText2:
-      'From our atelier in Ullal, Mangalore, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms tailored to your family celebrations.',
+      'From our atelier in Avudayanoor, Tenkasi, our master goldsmiths shape pure 22KT gold into intricate temple masterpieces, bridal harams, everyday chains, and bespoke heirlooms tailored to your family celebrations.',
     storyImage: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000&q=80',
     artisansTitle: 'The Art Behind Every Design',
     artisansText:
       'Our master goldsmiths dedicate hours of patient handcrafting to each curve, gemstone setting, and filigree detail, ensuring that every ornament that leaves our workshop carries the legacy of traditional excellence.',
     showroomTitle: 'Experience Our Collections in Person',
     showroomText:
-      'We welcome you to visit our Ullal showroom to experience our gold jewellery collections first-hand, consult directly with our master goldsmiths, and enjoy a warm, personalized shopping experience.',
+      'We welcome you to visit our Avudayanoor showroom to experience our gold jewellery collections first-hand, consult directly with our master goldsmiths, and enjoy a warm, personalized shopping experience.',
     showroomImage: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=800&q=80',
   },
   contact: {
@@ -102,10 +115,12 @@ const INITIAL_CONTENT = {
     title: 'We Are Here to Help',
     subtitle:
       'Have questions about a design, custom jewellery, or visiting our showroom? Reach out to our master goldsmiths.',
-    address: 'Ullal Main Road, (Your Location), India',
-    phone: '+91 9344894659',
-    whatsapp: '919344894659',
-    email: 'somidhari777@gmail.com',
+    address: 'Kadayam - Pavoorchatram Road, Avudayanoor, Tenkasi, Tamil Nadu 627415',
+    phone: '+91 94863 37947',
+    phone2: '+91 99945 41091',
+    whatsapp: '+91 99945 41091',
+    email: 'surinathan770@gmail.com',
+    owner: 'T.L.Suriyanathan',
     hours: 'Mon – Sat: 9:30 AM – 9:00 PM\nSunday: 10:00 AM – 1:00 PM',
     consultationTitle: 'Bridal & Custom Design Consultations',
     consultationSubtitle:
@@ -136,29 +151,133 @@ export function AdminProvider({ children }) {
     return localStorage.getItem('slgw_admin_auth') === 'true'
   })
 
-  const [adminUser] = useState({
-    name: 'Admin',
-    email: 'admin@gmail.com',
-    role: 'Master Goldsmith & Store Owner',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&q=80',
+  const [adminUser, setAdminUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('slgw_admin_user')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+      name: 'T.L.Suriyanathan',
+      email: 'surinathan770@gmail.com',
+      role: 'Master Goldsmith & Store Owner',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&q=80',
+    }
   })
 
-  const login = (email, password) => {
-    // Default demo credentials: admin@gmail.com / admin123
-    if (email === 'admin@gmail.com' && (password === 'admin123' || password === 'admin' || password.length >= 4)) {
-      setIsAuthenticated(true)
-      localStorage.setItem('slgw_admin_auth', 'true')
-      return { success: true }
+  const [authLoading, setAuthLoading] = useState(false)
+
+  // Listen to Supabase Auth state changes
+  useEffect(() => {
+    if (!isSupabaseConfigured) return
+
+    // 1. Check existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setIsAuthenticated(true)
+        localStorage.setItem('slgw_admin_auth', 'true')
+        setAdminUser((prev) => ({
+          ...prev,
+          email: session.user.email || prev.email,
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
+        }))
+      }
+    })
+
+    // 2. Subscribe to auth events (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true)
+        localStorage.setItem('slgw_admin_auth', 'true')
+        setAdminUser((prev) => ({
+          ...prev,
+          email: session.user.email || prev.email,
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
+        }))
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false)
+        localStorage.removeItem('slgw_admin_auth')
+      }
+    })
+
+    return () => {
+      subscription?.unsubscribe()
     }
-    return { success: false, error: 'Invalid email or password. Use admin@gmail.com / admin123' }
+  }, [])
+
+  const login = async (email, password) => {
+    setAuthLoading(true)
+    try {
+      // 1. Try Supabase Auth first if configured
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+
+        if (!error && data?.session) {
+          setIsAuthenticated(true)
+          localStorage.setItem('slgw_admin_auth', 'true')
+          const userObj = {
+            name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Store Admin',
+            email: data.user.email,
+            role: 'Master Goldsmith & Store Owner',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&q=80',
+          }
+          setAdminUser(userObj)
+          localStorage.setItem('slgw_admin_user', JSON.stringify(userObj))
+          setAuthLoading(false)
+          return { success: true }
+        }
+
+        // If Supabase returned an authentication error, return the actual error message
+        if (error) {
+          console.warn('Supabase auth attempt failed, checking fallback credentials:', error.message)
+        }
+      }
+
+      // 2. Fallback local/demo credentials
+      const validEmails = ['surinathan770@gmail.com', 'admin@gmail.com']
+      if (
+        validEmails.includes(email.trim().toLowerCase()) &&
+        (password === 'admin123' || password === 'admin' || password.length >= 4)
+      ) {
+        setIsAuthenticated(true)
+        localStorage.setItem('slgw_admin_auth', 'true')
+        setAuthLoading(false)
+        return {
+          success: true,
+          warning: isSupabaseConfigured
+            ? 'Logged in with local demo credentials. For live database writes, create an admin user in Supabase Authentication.'
+            : undefined,
+        }
+      }
+
+      setAuthLoading(false)
+      return {
+        success: false,
+        error: isSupabaseConfigured
+          ? 'Invalid credentials. Please verify your email and password in Supabase Auth.'
+          : 'Invalid email or password. Use surinathan770@gmail.com / admin123',
+      }
+    } catch (err) {
+      setAuthLoading(false)
+      return { success: false, error: err.message || 'Login failed' }
+    }
   }
 
-  const logout = () => {
+  const logout = async () => {
     setIsAuthenticated(false)
     localStorage.removeItem('slgw_admin_auth')
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut()
+      } catch (err) {
+        console.error('Error signing out from Supabase:', err)
+      }
+    }
   }
 
-  // ─── 2. Categories State ───
+  // ─── 2. Categories State & Remote Sync ───
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_categories')
@@ -167,37 +286,14 @@ export function AdminProvider({ children }) {
       return initialCategories
     }
   })
+  const [isLoadingCategories, setIsLoadingCategories] = useState(isSupabaseConfigured)
+  const [categoriesError, setCategoriesError] = useState(null)
 
   useEffect(() => {
     localStorage.setItem('slgw_admin_categories', JSON.stringify(categories))
   }, [categories])
 
-  const addCategory = (cat) => {
-    const slug = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    const newCat = {
-      id: slug,
-      slug,
-      name: cat.name,
-      description: cat.description || `Handcrafted ${cat.name.toLowerCase()} collection.`,
-      image: cat.image || 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80',
-      status: cat.status || 'Active',
-      featured: true,
-    }
-    setCategories((prev) => [...prev, newCat])
-    return newCat
-  }
-
-  const updateCategory = (slug, updatedFields) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.slug === slug ? { ...c, ...updatedFields } : c)),
-    )
-  }
-
-  const deleteCategory = (slug) => {
-    setCategories((prev) => prev.filter((c) => c.slug !== slug))
-  }
-
-  // ─── 3. Products State ───
+  // ─── 3. Products State & Remote Sync ───
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_products')
@@ -206,22 +302,169 @@ export function AdminProvider({ children }) {
       return initialProducts
     }
   })
+  const [isLoadingProducts, setIsLoadingProducts] = useState(isSupabaseConfigured)
+  const [productsError, setProductsError] = useState(null)
 
   useEffect(() => {
     localStorage.setItem('slgw_admin_products', JSON.stringify(products))
   }, [products])
 
-  const addProduct = (prod) => {
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncStatus, setSyncStatus] = useState(null)
+
+  // ─── 4. Fetch Products & Categories from Supabase ───
+  const refreshData = useCallback(async (autoSeedIfEmpty = false) => {
+    if (!isSupabaseConfigured) return
+
+    setIsLoadingProducts(true)
+    setIsLoadingCategories(true)
+    setProductsError(null)
+    setCategoriesError(null)
+
+    try {
+      const [remoteCats, remoteProds] = await Promise.all([
+        fetchCategoriesFromSupabase(),
+        fetchProductsFromSupabase(),
+      ])
+
+      // Handle categories
+      if (Array.isArray(remoteCats) && remoteCats.length > 0) {
+        setCategories(remoteCats)
+        localStorage.setItem('slgw_admin_categories', JSON.stringify(remoteCats))
+      }
+
+      // Handle products
+      if (Array.isArray(remoteProds)) {
+        if (remoteProds.length > 0) {
+          setProducts(remoteProds)
+          localStorage.setItem('slgw_admin_products', JSON.stringify(remoteProds))
+        } else if (autoSeedIfEmpty && remoteProds.length === 0) {
+          // Fresh database detected: auto-seed initial catalogue
+          console.info('Supabase database is empty. Seeding initial catalogue items...')
+          try {
+            const seedResult = await seedInitialDataToSupabase(initialProducts, initialCategories)
+            setSyncStatus(`Initial catalogue synced: ${seedResult.productsCount} products.`)
+            // Re-fetch after seeding
+            const seeded = await fetchProductsFromSupabase()
+            if (seeded?.length) {
+              setProducts(seeded)
+              localStorage.setItem('slgw_admin_products', JSON.stringify(seeded))
+            }
+          } catch (seedErr) {
+            console.warn('Auto-seed deferred (requires admin RLS or tables):', seedErr.message)
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Error syncing with Supabase (using cached catalogue):', err.message)
+      setProductsError(err.message)
+      setCategoriesError(err.message)
+    } finally {
+      setIsLoadingProducts(false)
+      setIsLoadingCategories(false)
+    }
+  }, [])
+
+  // Auto-fetch from Supabase on mount
+  useEffect(() => {
+    refreshData(true)
+  }, [refreshData])
+
+  // One-click manual migration helper
+  const migrateToSupabase = async () => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: 'Supabase URL and Key are not configured in .env.local' }
+    }
+    setIsSyncing(true)
+    setSyncStatus('Syncing catalogue to Supabase...')
+    try {
+      const res = await seedInitialDataToSupabase(products, categories)
+      await refreshData(false)
+      setSyncStatus(`Successfully synced ${res.productsCount} products and ${res.categoriesCount} categories.`)
+      setIsSyncing(false)
+      return { success: true, ...res }
+    } catch (err) {
+      console.error('Migration to Supabase failed:', err)
+      setIsSyncing(false)
+      setSyncStatus(`Sync failed: ${err.message}`)
+      return { success: false, error: err.message }
+    }
+  }
+
+  // ─── Category CRUD with Supabase Sync ───
+  const addCategory = async (cat) => {
+    const slug = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const newCat = {
+      id: slug,
+      slug,
+      name: cat.name,
+      description: cat.description || `Handcrafted ${cat.name.toLowerCase()} collection.`,
+      image: cat.image || 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80',
+      status: cat.status || 'Active',
+      featured: cat.featured ?? true,
+      displayOrder: categories.length + 1,
+    }
+
+    // Optimistic local update
+    setCategories((prev) => [...prev, newCat])
+
+    if (isSupabaseConfigured) {
+      try {
+        const saved = await insertCategoryToSupabase(newCat)
+        if (saved) {
+          setCategories((prev) => prev.map((c) => (c.slug === slug ? saved : c)))
+          return saved
+        }
+      } catch (err) {
+        console.error('Supabase category insert failed:', err)
+      }
+    }
+
+    return newCat
+  }
+
+  const updateCategory = async (slug, updatedFields) => {
+    setCategories((prev) =>
+      prev.map((c) => (c.slug === slug ? { ...c, ...updatedFields } : c)),
+    )
+
+    if (isSupabaseConfigured) {
+      try {
+        await updateCategoryInSupabase(slug, updatedFields)
+      } catch (err) {
+        console.error('Supabase category update failed:', err)
+      }
+    }
+  }
+
+  const deleteCategory = async (slug) => {
+    setCategories((prev) => prev.filter((c) => c.slug !== slug))
+
+    if (isSupabaseConfigured) {
+      try {
+        await deleteCategoryFromSupabase(slug)
+      } catch (err) {
+        console.error('Supabase category delete failed:', err)
+      }
+    }
+  }
+
+  // ─── Product CRUD with Supabase Sync ───
+  const addProduct = async (prod) => {
+    const rawId = prod.id || `DSG-${String(products.length + 1).padStart(3, '0')}`
     const newProd = {
-      id: prod.id || `DSG-${String(products.length + 1).padStart(3, '0')}`,
-      slug: (prod.id || `DSG-${String(products.length + 1).padStart(3, '0')}`).toLowerCase(),
+      id: rawId.trim(),
+      slug: (prod.slug || rawId).toLowerCase().trim(),
       name: prod.name,
       category: prod.category || 'bangles',
+      style: prod.style || 'traditional',
+      occasion: prod.occasion || 'Wedding',
+      weightRange: prod.weightRange || '',
       description: prod.description || 'Intricate gold jewellery handcrafted with precision.',
       images: prod.images?.length
         ? prod.images
         : ['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80'],
-      price: prod.price || null,
+      price: prod.price ? Number(prod.price) : null,
       weight: prod.weight || '15.0g',
       purity: prod.purity || '22 KT',
       availability: prod.availability || 'In Stock',
@@ -232,11 +475,27 @@ export function AdminProvider({ children }) {
       published: prod.status !== 'Inactive',
       createdAt: new Date().toISOString(),
     }
+
+    // Optimistic local update
     setProducts((prev) => [newProd, ...prev])
+
+    if (isSupabaseConfigured) {
+      try {
+        const saved = await insertProductToSupabase(newProd)
+        if (saved) {
+          setProducts((prev) => prev.map((p) => (p.id === newProd.id ? saved : p)))
+          return saved
+        }
+      } catch (err) {
+        console.error('Supabase product insert failed:', err)
+        throw err
+      }
+    }
+
     return newProd
   }
 
-  const updateProduct = (id, updatedFields) => {
+  const updateProduct = async (id, updatedFields) => {
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id === id) {
@@ -249,13 +508,36 @@ export function AdminProvider({ children }) {
         return p
       }),
     )
+
+    if (isSupabaseConfigured) {
+      try {
+        await updateProductInSupabase(id, updatedFields)
+      } catch (err) {
+        console.error('Supabase product update failed:', err)
+        throw err
+      }
+    }
   }
 
-  const deleteProduct = (id) => {
+  const deleteProduct = async (id) => {
     setProducts((prev) => prev.filter((p) => p.id !== id))
+
+    if (isSupabaseConfigured) {
+      try {
+        await deleteProductFromSupabase(id)
+      } catch (err) {
+        console.error('Supabase product delete failed:', err)
+        throw err
+      }
+    }
   }
 
-  // ─── 4. Enquiries State ───
+  // ─── Image Upload to Supabase Storage Helper ───
+  const uploadImage = async (file, folder = 'products') => {
+    return await uploadJewelleryImage(file, folder)
+  }
+
+  // ─── 5. Enquiries State ───
   const [enquiries, setEnquiries] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_enquiries')
@@ -305,6 +587,18 @@ export function AdminProvider({ children }) {
           .replaceAll('Start Custom Design on WhatsApp', 'Request Custom Design')
           .replaceAll('Book WhatsApp Consultation', 'Book In-Store Consultation')
           .replaceAll('directly over WhatsApp or in-person', 'directly to our goldsmith or in-person')
+          .replaceAll('somsekhar779@gmail.com', 'surinathan770@gmail.com')
+          .replaceAll('somidhari777@gmail.com', 'surinathan770@gmail.com')
+          .replaceAll('contact@lakshmanangoldworks.com', 'surinathan770@gmail.com')
+          .replaceAll('+91 9344894659', '+91 94863 37947')
+          .replaceAll('9344894659', '9486337947')
+          .replaceAll('+91 98451 23456', '+91 94863 37947')
+          .replaceAll('98451 23456', '9486337947')
+          .replaceAll('Ullal, Mangalore', 'Avudayanoor, Tenkasi')
+          .replaceAll('Ullal showroom', 'Avudayanoor showroom')
+          .replaceAll('showroom in Ullal', 'showroom in Avudayanoor')
+          .replaceAll('Ullal Main Road, (Your Location), India', 'Kadayam - Pavoorchatram Road, Avudayanoor, Tenkasi, Tamil Nadu 627415')
+          .replaceAll('Ullal Main Road', 'Kadayam - Pavoorchatram Road')
         return JSON.parse(migrated)
       }
       return INITIAL_CONTENT
@@ -335,14 +629,38 @@ export function AdminProvider({ children }) {
     try {
       const saved = localStorage.getItem('slgw_admin_store_details')
       if (saved) {
-        const migrated = saved.replaceAll('Sri Lakshmi', 'Lakshmanan')
-        return JSON.parse(migrated)
+        let migrated = saved
+          .replaceAll('Sri Lakshmi', 'Lakshmanan')
+          .replaceAll('somsekhar779@gmail.com', 'surinathan770@gmail.com')
+          .replaceAll('somidhari777@gmail.com', 'surinathan770@gmail.com')
+          .replaceAll('contact@lakshmanangoldworks.com', 'surinathan770@gmail.com')
+          .replaceAll('+91 9344894659', '+91 94863 37947')
+          .replaceAll('9344894659', '9486337947')
+          .replaceAll('+91 98451 23456', '+91 94863 37947')
+          .replaceAll('98451 23456', '9486337947')
+          .replaceAll('Ullal Main Road, (Your Location), India', 'Kadayam - Pavoorchatram Road, Avudayanoor, Tenkasi, Tamil Nadu 627415')
+          .replaceAll('Ullal Main Road', 'Kadayam - Pavoorchatram Road')
+        const parsed = JSON.parse(migrated)
+        parsed.owner = 'T.L.Suriyanathan'
+        parsed.phone = '+91 94863 37947'
+        parsed.phone2 = '+91 99945 41091'
+        parsed.whatsapp = '+91 99945 41091'
+        parsed.email = 'surinathan770@gmail.com'
+        if (!parsed.address || parsed.address.includes('Ullal') || parsed.address.includes('Your Location')) {
+          parsed.address = initialSiteConfig.address
+        }
+        if (!parsed.mapUrl || parsed.mapUrl.includes('Ullal')) {
+          parsed.mapUrl = initialSiteConfig.mapUrl
+        }
+        return parsed
       }
       return {
         name: initialSiteConfig.name,
+        owner: initialSiteConfig.owner || 'T.L.Suriyanathan',
         address: initialSiteConfig.address,
         phone: initialSiteConfig.phone,
-        whatsapp: initialSiteConfig.whatsapp,
+        phone2: initialSiteConfig.phone2 || '+91 99945 41091',
+        whatsapp: initialSiteConfig.phone2 || '+91 99945 41091',
         email: initialSiteConfig.email,
         hours: 'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM',
         mapUrl: initialSiteConfig.mapUrl,
@@ -350,9 +668,11 @@ export function AdminProvider({ children }) {
     } catch {
       return {
         name: initialSiteConfig.name,
+        owner: initialSiteConfig.owner || 'T.L.Suriyanathan',
         address: initialSiteConfig.address,
         phone: initialSiteConfig.phone,
-        whatsapp: initialSiteConfig.whatsapp,
+        phone2: initialSiteConfig.phone2 || '+91 99945 41091',
+        whatsapp: initialSiteConfig.phone2 || '+91 99945 41091',
         email: initialSiteConfig.email,
         hours: 'Mon - Sat: 9:30 AM - 9:00 PM\nSunday: 10:00 AM - 1:00 PM',
         mapUrl: initialSiteConfig.mapUrl,
@@ -373,16 +693,27 @@ export function AdminProvider({ children }) {
       value={{
         isAuthenticated,
         adminUser,
+        authLoading,
         login,
         logout,
         categories,
+        isLoadingCategories,
+        categoriesError,
         addCategory,
         updateCategory,
         deleteCategory,
         products,
+        isLoadingProducts,
+        productsError,
         addProduct,
         updateProduct,
         deleteProduct,
+        uploadImage,
+        isSupabaseConfigured,
+        isSyncing,
+        syncStatus,
+        migrateToSupabase,
+        refreshData,
         enquiries,
         addEnquiry,
         updateEnquiryStatus,

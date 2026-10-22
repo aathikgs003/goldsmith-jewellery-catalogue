@@ -1,53 +1,112 @@
 /**
  * useProducts.js — custom hook for product data access.
- * Wraps productService for use inside React components.
+ * Pulls live reactive products from AdminContext (Supabase Database),
+ * gracefully falling back to productService / local data.
  */
 
 import { useMemo, useState } from 'react'
+import { useAdmin } from '../context/AdminContext'
 import {
-  getAllProducts,
-  getFeaturedProducts,
-  getNewArrivals,
-  getProductBySlug,
-  getProductsByCategory,
-  getRelatedProducts,
-  searchProducts,
+  getSourceProducts,
   sortProducts,
 } from '../services/productService'
 
+/** Get live product source array */
+function useLiveProducts() {
+  try {
+    const adminCtx = useAdmin()
+    if (adminCtx?.products && adminCtx.products.length > 0) {
+      return adminCtx.products
+    }
+  } catch {
+    // Outside of AdminProvider, fallback to source
+  }
+  return getSourceProducts()
+}
+
 /** All published products */
 export function useAllProducts() {
-  return useMemo(() => getAllProducts(), [])
+  const products = useLiveProducts()
+  return useMemo(
+    () => products.filter((p) => p.published !== false && p.status !== 'Inactive'),
+    [products]
+  )
 }
 
 /** Products filtered and sorted for a category collection page */
 export function useCategoryProducts(categorySlug, query = '', sort = 'featured') {
+  const allPublished = useAllProducts()
+
   return useMemo(() => {
-    const base = query
-      ? searchProducts(query, categorySlug)
-      : getProductsByCategory(categorySlug)
-    return sortProducts(base, sort)
-  }, [categorySlug, query, sort])
+    let pool = allPublished
+    if (categorySlug && categorySlug !== 'all') {
+      pool = pool.filter(
+        (p) => p.category?.toLowerCase() === categorySlug.toLowerCase()
+      )
+    }
+
+    if (query?.trim()) {
+      const q = query.toLowerCase().trim()
+      pool = pool.filter(
+        (p) =>
+          p.name?.toLowerCase().includes(q) ||
+          p.id?.toLowerCase().includes(q) ||
+          (p.description && p.description.toLowerCase().includes(q))
+      )
+    }
+
+    return sortProducts(pool, sort)
+  }, [allPublished, categorySlug, query, sort])
 }
 
 /** Featured products */
 export function useFeaturedProducts(limit = 8) {
-  return useMemo(() => getFeaturedProducts(limit), [limit])
+  const allPublished = useAllProducts()
+  return useMemo(
+    () => allPublished.filter((p) => p.featured).slice(0, limit),
+    [allPublished, limit]
+  )
 }
 
 /** New arrivals */
 export function useNewArrivals(limit = 8) {
-  return useMemo(() => getNewArrivals(limit), [limit])
+  const allPublished = useAllProducts()
+  return useMemo(
+    () =>
+      allPublished
+        .filter((p) => p.newArrival)
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, limit),
+    [allPublished, limit]
+  )
 }
 
-/** Single product by slug */
-export function useProduct(slug) {
-  return useMemo(() => getProductBySlug(slug), [slug])
+/** Single product by slug or design ID */
+export function useProduct(slugOrId) {
+  const allPublished = useAllProducts()
+  return useMemo(() => {
+    if (!slugOrId) return null
+    const target = slugOrId.toLowerCase().trim()
+    return (
+      allPublished.find(
+        (p) =>
+          p.slug?.toLowerCase() === target ||
+          p.id?.toLowerCase() === target
+      ) || null
+    )
+  }, [allPublished, slugOrId])
 }
 
-/** Related products */
+/** Related products in the same category */
 export function useRelatedProducts(productId, limit = 4) {
-  return useMemo(() => getRelatedProducts(productId, limit), [productId, limit])
+  const allPublished = useAllProducts()
+  return useMemo(() => {
+    const current = allPublished.find((p) => p.id === productId || p.slug === productId)
+    if (!current) return []
+    return allPublished
+      .filter((p) => p.id !== current.id && p.category === current.category)
+      .slice(0, limit)
+  }, [allPublished, productId, limit])
 }
 
 /** Paginated list with load-more */

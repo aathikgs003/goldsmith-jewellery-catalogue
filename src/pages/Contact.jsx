@@ -96,7 +96,7 @@ export default function Contact() {
             {/* Subtitle */}
             <p className="text-sm sm:text-base text-[#786D63] font-light leading-relaxed max-w-xl">
               {contactData.subtitle ||
-                'Experience the warmth of traditional South Indian gold craftsmanship. Visit our physical showroom in Ullal, consult directly with our master goldsmith, or connect with us online.'}
+                'Experience the warmth of traditional South Indian gold craftsmanship. Visit our physical showroom in Avudayanoor, Tenkasi, consult directly with our master goldsmith, or connect with us online.'}
             </p>
 
             {/* Key Assurance Highlights */}
@@ -195,13 +195,23 @@ export default function Contact() {
                 Speak directly with our goldsmith desk regarding existing orders or hallmark certifications.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-[#D8B36A]/20">
+            <div className="pt-4 mt-2 border-t border-[#D8B36A]/20 flex flex-col gap-1.5">
               <a
-                href={`tel:${contactData.phone || store.phone}`}
-                className="text-xs font-semibold text-[#30231F] hover:text-[#C4933D] transition-colors font-mono"
+                href={`tel:${(store.phone || siteConfig.phone).replace(/[^0-9+]/g, '')}`}
+                className="text-xs font-semibold text-[#30231F] hover:text-[#C4933D] transition-colors font-mono flex items-center gap-1.5"
               >
-                {contactData.phone || store.phone}
+                <span className="text-[10px] uppercase font-bold text-[#C4933D] tracking-wide">M1:</span>
+                <span>{store.phone || siteConfig.phone}</span>
               </a>
+              {(store.phone2 || siteConfig.phone2) && (
+                <a
+                  href={`tel:${(store.phone2 || siteConfig.phone2).replace(/[^0-9+]/g, '')}`}
+                  className="text-xs font-semibold text-[#30231F] hover:text-[#C4933D] transition-colors font-mono flex items-center gap-1.5"
+                >
+                  <span className="text-[10px] uppercase font-bold text-[#C4933D] tracking-wide">M2:</span>
+                  <span>{store.phone2 || siteConfig.phone2}</span>
+                </a>
+              )}
             </div>
           </div>
 
@@ -304,7 +314,7 @@ export default function Contact() {
                     <input
                       type="tel"
                       required
-                      placeholder="e.g. 98451 23456"
+                      placeholder="e.g. 94863 37947"
                       value={formData.contact}
                       onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8B36A]/45 text-sm focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
@@ -388,7 +398,7 @@ export default function Contact() {
                 <div className="flex items-center gap-2">
                   <Navigation size={16} className="text-[#C4933D]" />
                   <span className="text-xs font-bold text-[#30231F] uppercase tracking-wider">
-                    Our Location in Ullal
+                    Our Location in Avudayanoor, Tenkasi
                   </span>
                 </div>
                 <a
@@ -402,64 +412,59 @@ export default function Contact() {
                 </a>
               </div>
 
-              {/* Stylized Map View with Pin */}
-              <div className="relative h-60 bg-[#EAE3D2] flex items-center justify-center overflow-hidden border-b border-[#D8B36A]/30">
-                {/* Map grid pattern */}
-                <div
-                  className="absolute inset-0 opacity-25"
-                  style={{
-                    backgroundImage: `radial-gradient(#30231F 1px, transparent 1px)`,
-                    backgroundSize: '18px 18px',
-                  }}
+              {/* Interactive Google Maps View */}
+              <div className="relative h-60 bg-[#EAE3D2] overflow-hidden border-b border-[#D8B36A]/30">
+                <iframe
+                  title="Lakshmanan Gold Works Store Location"
+                  src="https://www.google.com/maps/embed?pb=!4v1792646509938!6m8!1m7!1sbRXXEEC6nrql_-YILECMuA!2m2!1d8.883108247201784!2d77.38855234125623!3f92.68559314648843!4f-12.973021813108176!5f0.7820865974627469"
+                  className="w-full h-full border-0"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
                 />
-
-                {/* Decorative road lines */}
-                <svg className="absolute inset-0 w-full h-full opacity-40">
-                  <path
-                    d="M0,120 Q140,80 260,130 T520,110"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeWidth="8"
-                  />
-                  <path
-                    d="M200,0 L230,260"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeWidth="6"
-                  />
-                  <path
-                    d="M20,190 Q220,170 420,230"
-                    fill="none"
-                    stroke="#D8B36A"
-                    strokeWidth="3"
-                  />
-                </svg>
-
-                {/* Red Location Pin */}
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="bg-rose-600 text-white p-2.5 rounded-full shadow-xl border-2 border-white">
-                    <MapPin size={22} className="fill-white text-rose-600" />
-                  </div>
-                  <div className="bg-[#30231F] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg mt-1 border border-[#D8B36A] flex items-center gap-1">
-                    <span>📍</span>
-                    <span>Ullal Main Road</span>
-                  </div>
-                  <div className="w-3 h-1.5 bg-[#30231F]/30 rounded-full blur-xs mt-1" />
-                </div>
               </div>
 
               {/* Atelier Store Card Summary */}
               <div className="p-5 space-y-3 bg-[#FFFCF7]">
-                <h4
-                  className="font-bold text-base text-[#30231F]"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
-                >
-                  {store.name || 'Lakshmanan Gold Works'}
-                </h4>
+                <div>
+                  <h4
+                    className="font-bold text-base text-[#30231F]"
+                    style={{ fontFamily: "'Playfair Display', serif" }}
+                  >
+                    {store.name || 'Lakshmanan Gold Works'}
+                  </h4>
+                  <p className="text-xs text-[#C4933D] font-medium mt-0.5">
+                    Proprietor: {store.owner || siteConfig.owner || 'T.L.Suriyanathan'}
+                  </p>
+                </div>
                 <p className="text-xs text-[#786D63] leading-relaxed">
                   {store.address}
                 </p>
-                <div className="pt-1">
+                <div className="pt-2 border-t border-[#D8B36A]/20 space-y-1.5 text-xs">
+                  <div className="flex items-start gap-2 text-[#30231F]">
+                    <Phone size={13} className="text-[#C4933D] shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-0.5">
+                      <a href={`tel:${(store.phone || siteConfig.phone).replace(/[^0-9+]/g, '')}`} className="font-mono hover:text-[#C4933D]">
+                        <span className="text-[10px] text-[#786D63] mr-1">Mobile 1:</span>
+                        {store.phone || siteConfig.phone}
+                      </a>
+                      {(store.phone2 || siteConfig.phone2) && (
+                        <a href={`tel:${(store.phone2 || siteConfig.phone2).replace(/[^0-9+]/g, '')}`} className="font-mono hover:text-[#C4933D]">
+                          <span className="text-[10px] text-[#786D63] mr-1">Mobile 2:</span>
+                          {store.phone2 || siteConfig.phone2}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#30231F]">
+                    <Mail size={13} className="text-[#C4933D] shrink-0" />
+                    <a href={`mailto:${store.email || siteConfig.email}`} className="hover:text-[#C4933D] truncate">
+                      {store.email || siteConfig.email}
+                    </a>
+                  </div>
+                </div>
+                <div className="pt-2">
                   <a
                     href={store.mapUrl}
                     target="_blank"

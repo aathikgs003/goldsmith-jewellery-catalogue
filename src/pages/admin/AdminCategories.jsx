@@ -1,13 +1,37 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, X, UploadCloud, FolderTree, Check } from 'lucide-react'
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  UploadCloud,
+  FolderTree,
+  Check,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 
 export default function AdminCategories() {
-  const { categories, addCategory, updateCategory, deleteCategory, products } = useAdmin()
+  const {
+    categories,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    products,
+    uploadImage,
+    isLoadingCategories,
+    categoriesError,
+    isSupabaseConfigured,
+    refreshData,
+  } = useAdmin()
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null) // null if adding
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     image: '',
@@ -16,6 +40,7 @@ export default function AdminCategories() {
   })
   const [imagePreview, setImagePreview] = useState('')
   const [successToast, setSuccessToast] = useState('')
+  const [errorToast, setErrorToast] = useState('')
 
   const openAddModal = () => {
     setEditingCategory(null)
@@ -46,57 +71,91 @@ export default function AdminCategories() {
     setEditingCategory(null)
   }
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result)
-        setFormData((prev) => ({ ...prev, image: reader.result }))
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      if (isSupabaseConfigured) {
+        const publicUrl = await uploadImage(file, 'categories')
+        setImagePreview(publicUrl)
+        setFormData((prev) => ({ ...prev, image: publicUrl }))
+        showToast('Category image uploaded to Supabase Storage')
+      } else {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setImagePreview(reader.result)
+          setFormData((prev) => ({ ...prev, image: reader.result }))
+          showToast('Image loaded locally (Configure Supabase for cloud storage)')
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+    } catch (err) {
+      console.error('Category upload failed:', err)
+      showErrorToast(err.message || 'Failed to upload category image')
+    } finally {
+      setIsUploadingImage(false)
+      e.target.value = ''
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.name.trim()) return
 
+    setIsSubmitting(true)
     const fallbackImg =
       imagePreview ||
       formData.image ||
       'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80'
 
-    if (editingCategory) {
-      updateCategory(editingCategory.slug, {
-        name: formData.name,
-        image: fallbackImg,
-        status: formData.status,
-        description: formData.description,
-      })
-      showToast(`Category "${formData.name}" updated successfully`)
-    } else {
-      addCategory({
-        name: formData.name,
-        image: fallbackImg,
-        status: formData.status,
-        description: formData.description,
-      })
-      showToast(`Category "${formData.name}" created successfully`)
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.slug, {
+          name: formData.name,
+          image: fallbackImg,
+          status: formData.status,
+          description: formData.description,
+        })
+        showToast(`Category "${formData.name}" updated successfully`)
+      } else {
+        await addCategory({
+          name: formData.name,
+          image: fallbackImg,
+          status: formData.status,
+          description: formData.description,
+        })
+        showToast(`Category "${formData.name}" created successfully`)
+      }
+      closeModal()
+    } catch (err) {
+      console.error('Failed to save category:', err)
+      showErrorToast(err.message || 'Failed to save category')
+    } finally {
+      setIsSubmitting(false)
     }
-    closeModal()
   }
 
-  const handleDelete = (slug, name) => {
+  const handleDelete = async (slug, name) => {
     if (window.confirm(`Are you sure you want to delete the "${name}" category?`)) {
-      deleteCategory(slug)
-      showToast(`Category "${name}" deleted`)
+      try {
+        await deleteCategory(slug)
+        showToast(`Category "${name}" deleted`)
+      } catch (err) {
+        showErrorToast(err.message || 'Failed to delete category')
+      }
     }
   }
 
   const showToast = (msg) => {
     setSuccessToast(msg)
     setTimeout(() => setSuccessToast(''), 3500)
+  }
+
+  const showErrorToast = (msg) => {
+    setErrorToast(msg)
+    setTimeout(() => setErrorToast(''), 5000)
   }
 
   // Count products per category
@@ -113,29 +172,78 @@ export default function AdminCategories() {
           <span className="text-sm font-medium">{successToast}</span>
         </div>
       )}
+      {errorToast && (
+        <div className="fixed top-20 right-6 z-50 bg-rose-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-rose-400 animate-fade-in max-w-md">
+          <AlertCircle size={18} className="text-rose-300 shrink-0" />
+          <span className="text-xs font-medium">{errorToast}</span>
+        </div>
+      )}
 
       {/* Screen 3: Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1
-            className="text-2xl sm:text-3xl font-bold text-[#30231F]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Manage Categories
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1
+              className="text-2xl sm:text-3xl font-bold text-[#30231F]"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Manage Categories
+            </h1>
+            {isSupabaseConfigured ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Supabase Synced
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-300">
+                Local Storage Mode
+              </span>
+            )}
+          </div>
           <p className="text-xs sm:text-sm text-[#786D63] mt-1">
-            Add, edit or organize jewellery collections visible on the store
+            Add, edit or organize jewellery collections visible across the store
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-2 bg-[#351016] hover:bg-[#45151D] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg border border-[#C4933D]/40 self-start sm:self-auto cursor-pointer"
-        >
-          <Plus size={18} />
-          <span>Add Category</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {isSupabaseConfigured && (
+            <button
+              onClick={() => refreshData()}
+              disabled={isLoadingCategories}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8B36A]/50 bg-white text-xs font-semibold text-[#30231F] hover:bg-[#F5EBDD] transition-colors disabled:opacity-50 cursor-pointer"
+              title="Refresh from Supabase Database"
+            >
+              <RefreshCw size={14} className={isLoadingCategories ? 'animate-spin text-[#C4933D]' : 'text-[#C4933D]'} />
+              <span>{isLoadingCategories ? 'Syncing...' : 'Refresh'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center justify-center gap-2 bg-[#351016] hover:bg-[#45151D] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg border border-[#C4933D]/40 cursor-pointer"
+          >
+            <Plus size={18} />
+            <span>Add Category</span>
+          </button>
+        </div>
       </div>
+
+      {/* Database Error Banner if any */}
+      {categoriesError && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-3 text-xs">
+          <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-1">
+            <p className="font-semibold">Categories sync notice:</p>
+            <p className="text-amber-800">{categoriesError}</p>
+          </div>
+          <button
+            onClick={() => refreshData()}
+            className="px-3 py-1 bg-amber-200 hover:bg-amber-300 rounded text-amber-900 text-xs font-medium transition-colors cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Screen 3: Categories Table Card */}
       <div className="bg-white rounded-xl border border-[#D8B36A]/40 shadow-xs overflow-hidden">
@@ -304,8 +412,13 @@ export default function AdminCategories() {
                   <div className="space-y-3">
                     {/* Preview Box */}
                     <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#F5EBDD] border border-[#D8B36A]/40 flex-shrink-0 flex items-center justify-center">
-                        {imagePreview ? (
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[#F5EBDD] border border-[#D8B36A]/40 flex-shrink-0 flex items-center justify-center">
+                        {isUploadingImage ? (
+                          <div className="flex flex-col items-center justify-center gap-1 text-center p-1">
+                            <Loader2 size={20} className="animate-spin text-[#C4933D]" />
+                            <span className="text-[10px] text-[#786D63] font-medium leading-none">Uploading</span>
+                          </div>
+                        ) : imagePreview ? (
                           <img
                             src={imagePreview}
                             alt="Preview"
@@ -320,19 +433,29 @@ export default function AdminCategories() {
                           type="url"
                           placeholder="Paste image URL (https://...)"
                           value={formData.image}
+                          disabled={isUploadingImage || isSubmitting}
                           onChange={(e) => {
                             setFormData({ ...formData, image: e.target.value })
                             setImagePreview(e.target.value)
                           }}
-                          className="w-full px-3 py-2 rounded-lg border border-[#D8B36A]/50 text-xs focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7]"
+                          className="w-full px-3 py-2 rounded-lg border border-[#D8B36A]/50 text-xs focus:outline-hidden focus:border-[#C4933D] bg-[#FFFCF7] disabled:opacity-60"
                         />
-                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F5EBDD] hover:bg-[#D8B36A]/30 text-xs text-[#30231F] font-medium cursor-pointer transition-colors border border-[#D8B36A]/40">
-                          <UploadCloud size={14} className="text-[#C4933D]" />
-                          <span>Upload from Computer</span>
+                        <label
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F5EBDD] hover:bg-[#D8B36A]/30 text-xs text-[#30231F] font-medium transition-colors border border-[#D8B36A]/40 ${
+                            isUploadingImage || isSubmitting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                          }`}
+                        >
+                          {isUploadingImage ? (
+                            <Loader2 size={14} className="animate-spin text-[#C4933D]" />
+                          ) : (
+                            <UploadCloud size={14} className="text-[#C4933D]" />
+                          )}
+                          <span>{isUploadingImage ? 'Uploading to Supabase...' : 'Upload from Computer'}</span>
                           <input
                             type="file"
                             accept="image/*"
                             className="hidden"
+                            disabled={isUploadingImage || isSubmitting}
                             onChange={handleFileUpload}
                           />
                         </label>
@@ -361,15 +484,26 @@ export default function AdminCategories() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold text-[#786D63] hover:text-[#30231F] hover:bg-[#F5EBDD] transition-colors cursor-pointer"
+                  disabled={isSubmitting || isUploadingImage}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-[#786D63] hover:text-[#30231F] hover:bg-[#F5EBDD] transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-[#351016] hover:bg-[#45151D] border border-[#C4933D]/40 transition-all shadow-md cursor-pointer"
+                  disabled={isSubmitting || isUploadingImage}
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white bg-[#351016] hover:bg-[#45151D] border border-[#C4933D]/40 transition-all shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {editingCategory ? 'Update Category' : 'Save Category'}
+                  {isSubmitting && <Loader2 size={16} className="animate-spin text-[#C4933D]" />}
+                  <span>
+                    {isSubmitting
+                      ? editingCategory
+                        ? 'Updating...'
+                        : 'Saving...'
+                      : editingCategory
+                      ? 'Update Category'
+                      : 'Save Category'}
+                  </span>
                 </button>
               </div>
             </form>

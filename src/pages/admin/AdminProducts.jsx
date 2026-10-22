@@ -8,12 +8,29 @@ import {
   UploadCloud,
   Check,
   Eye,
+  Loader2,
+  RefreshCw,
+  Database,
+  AlertCircle,
 } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 import { Link } from 'react-router-dom'
 
 export default function AdminProducts() {
-  const { products, categories, addProduct, updateProduct, deleteProduct } = useAdmin()
+  const {
+    products,
+    categories,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    uploadImage,
+    isLoadingProducts,
+    productsError,
+    isSupabaseConfigured,
+    migrateToSupabase,
+    isSyncing,
+    refreshData,
+  } = useAdmin()
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,6 +40,8 @@ export default function AdminProducts() {
   // Modal / Form state (Screen 6 & 7)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -38,6 +57,7 @@ export default function AdminProducts() {
   })
   const [imageInputUrl, setImageInputUrl] = useState('')
   const [successToast, setSuccessToast] = useState('')
+  const [errorToast, setErrorToast] = useState('')
 
   // Filtered products
   const filteredProducts = useMemo(() => {
@@ -110,17 +130,38 @@ export default function AdminProducts() {
     setEditingProduct(null)
   }
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      if (isSupabaseConfigured) {
+        const publicUrl = await uploadImage(file, 'products')
         setFormData((prev) => ({
           ...prev,
-          images: [reader.result, ...prev.images.filter((img) => img !== reader.result)],
+          images: [publicUrl, ...prev.images.filter((img) => img && img !== publicUrl)],
         }))
+        showToast('Photo uploaded to Supabase Storage successfully')
+      } else {
+        // Fallback local FileReader preview
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setFormData((prev) => ({
+            ...prev,
+            images: [reader.result, ...prev.images.filter((img) => img !== reader.result)],
+          }))
+          showToast('Image loaded locally (Configure Supabase to store in cloud)')
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+    } catch (err) {
+      console.error('Image upload failed:', err)
+      showErrorToast(err.message || 'Image upload failed. Check Storage RLS policies.')
+    } finally {
+      setIsUploadingImage(false)
+      // reset file input value so user can re-upload same file if needed
+      e.target.value = ''
     }
   }
 
@@ -128,7 +169,7 @@ export default function AdminProducts() {
     if (imageInputUrl.trim()) {
       setFormData((prev) => ({
         ...prev,
-        images: [...prev.images, imageInputUrl.trim()],
+        images: [...prev.images.filter(Boolean), imageInputUrl.trim()],
       }))
       setImageInputUrl('')
     }
@@ -141,59 +182,76 @@ export default function AdminProducts() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.name.trim() || !formData.id.trim()) return
 
+    setIsSubmitting(true)
     const validImages = formData.images.filter(Boolean)
     const finalImages =
       validImages.length > 0
         ? validImages
         : ['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80']
 
-    if (editingProduct) {
-      updateProduct(editingProduct.id, {
-        name: formData.name,
-        category: formData.category,
-        description: formData.description,
-        weight: formData.weight,
-        purity: formData.purity,
-        availability: formData.availability,
-        status: formData.status,
-        newArrival: formData.newArrival,
-        featured: formData.featured,
-        images: finalImages,
-      })
-      showToast(`Design "${formData.name}" updated successfully`)
-    } else {
-      addProduct({
-        id: formData.id.trim(),
-        name: formData.name,
-        category: formData.category,
-        description: formData.description,
-        weight: formData.weight,
-        purity: formData.purity,
-        availability: formData.availability,
-        status: formData.status,
-        newArrival: formData.newArrival,
-        featured: formData.featured,
-        images: finalImages,
-      })
-      showToast(`Design "${formData.name}" created successfully`)
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, {
+          name: formData.name,
+          category: formData.category,
+          description: formData.description,
+          weight: formData.weight,
+          purity: formData.purity,
+          availability: formData.availability,
+          status: formData.status,
+          newArrival: formData.newArrival,
+          featured: formData.featured,
+          images: finalImages,
+        })
+        showToast(`Design "${formData.name}" updated successfully`)
+      } else {
+        await addProduct({
+          id: formData.id.trim(),
+          name: formData.name,
+          category: formData.category,
+          description: formData.description,
+          weight: formData.weight,
+          purity: formData.purity,
+          availability: formData.availability,
+          status: formData.status,
+          newArrival: formData.newArrival,
+          featured: formData.featured,
+          images: finalImages,
+        })
+        showToast(`Design "${formData.name}" created successfully`)
+      }
+      closeForm()
+    } catch (err) {
+      console.error('Failed to save product:', err)
+      showErrorToast(err.message || 'Failed to save product in database')
+    } finally {
+      setIsSubmitting(false)
     }
-    closeForm()
   }
 
-  const handleDelete = (id, name) => {
+  const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete design "${name}" (${id})?`)) {
-      deleteProduct(id)
-      showToast(`Design "${name}" deleted`)
+      try {
+        await deleteProduct(id)
+        showToast(`Design "${name}" deleted`)
+      } catch (err) {
+        showErrorToast(err.message || 'Failed to delete design')
+      }
     }
   }
 
   const showToast = (msg) => {
     setSuccessToast(msg)
     setTimeout(() => setSuccessToast(''), 3500)
+  }
+
+  const showErrorToast = (msg) => {
+    setErrorToast(msg)
+    setTimeout(() => setErrorToast(''), 5000)
   }
 
   return (
@@ -205,29 +263,94 @@ export default function AdminProducts() {
           <span className="text-sm font-medium">{successToast}</span>
         </div>
       )}
+      {errorToast && (
+        <div className="fixed top-20 right-6 z-50 bg-rose-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-rose-400 animate-fade-in max-w-md">
+          <AlertCircle size={18} className="text-rose-300 shrink-0" />
+          <span className="text-xs font-medium">{errorToast}</span>
+        </div>
+      )}
 
       {/* Screen 5: Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1
-            className="text-2xl sm:text-3xl font-bold text-[#30231F]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Manage Products / Designs
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1
+              className="text-2xl sm:text-3xl font-bold text-[#30231F]"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Manage Products / Designs
+            </h1>
+            {isSupabaseConfigured ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Supabase Synced
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-300">
+                <Database size={11} />
+                Local Storage Mode
+              </span>
+            )}
+          </div>
           <p className="text-xs sm:text-sm text-[#786D63] mt-1">
-            Displaying {filteredProducts.length} of {products.length} jewellery designs
+            Displaying {filteredProducts.length} of {products.length} jewellery designs across catalogue
           </p>
         </div>
 
-        <button
-          onClick={openAddForm}
-          className="inline-flex items-center justify-center gap-2 bg-[#351016] hover:bg-[#45151D] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg border border-[#C4933D]/40 self-start sm:self-auto cursor-pointer"
-        >
-          <Plus size={18} />
-          <span>Add New Design</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {isSupabaseConfigured && (
+            <button
+              onClick={() => refreshData()}
+              disabled={isLoadingProducts}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8B36A]/50 bg-white text-xs font-semibold text-[#30231F] hover:bg-[#F5EBDD] transition-colors disabled:opacity-50 cursor-pointer"
+              title="Refresh from Supabase Database"
+            >
+              <RefreshCw size={14} className={isLoadingProducts ? 'animate-spin text-[#C4933D]' : 'text-[#C4933D]'} />
+              <span>{isLoadingProducts ? 'Syncing...' : 'Refresh'}</span>
+            </button>
+          )}
+
+          {isSupabaseConfigured && products.length > 0 && (
+            <button
+              onClick={migrateToSupabase}
+              disabled={isSyncing}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#C4933D]/50 bg-[#FFFCF7] text-xs font-semibold text-[#30231F] hover:bg-[#F5EBDD] transition-colors disabled:opacity-50 cursor-pointer"
+              title="Ensure all catalogue designs and images are pushed to Supabase"
+            >
+              <Database size={14} className="text-[#C4933D]" />
+              <span>{isSyncing ? 'Syncing...' : 'Sync to Supabase'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={openAddForm}
+            className="inline-flex items-center justify-center gap-2 bg-[#351016] hover:bg-[#45151D] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg border border-[#C4933D]/40 cursor-pointer"
+          >
+            <Plus size={18} />
+            <span>Add New Design</span>
+          </button>
+        </div>
       </div>
+
+      {/* Database Error Banner if any */}
+      {productsError && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-3 text-xs">
+          <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-1">
+            <p className="font-semibold">Supabase sync notice:</p>
+            <p className="text-amber-800">{productsError}</p>
+            <p className="text-[11px] text-amber-700">
+              The app is using your local catalogue so browsing remains uninterrupted. If database tables were just created, click &quot;Sync to Supabase&quot; to seed them.
+            </p>
+          </div>
+          <button
+            onClick={() => refreshData()}
+            className="px-3 py-1 bg-amber-200 hover:bg-amber-300 rounded text-amber-900 text-xs font-medium transition-colors cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Screen 5: Filter & Search Bar */}
       <div className="bg-white p-4 rounded-xl border border-[#D8B36A]/40 shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
@@ -406,7 +529,30 @@ export default function AdminProducts() {
                 )
               })}
 
-              {filteredProducts.length === 0 && (
+              {isLoadingProducts && products.length === 0 && (
+                <>
+                  {[1, 2, 3, 4].map((n) => (
+                    <tr key={n} className="animate-pulse border-b border-[#D8B36A]/15">
+                      <td className="py-3.5 px-4 sm:px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-lg bg-[#F5EBDD]" />
+                          <div className="space-y-1.5">
+                            <div className="w-32 h-3.5 bg-[#F5EBDD] rounded" />
+                            <div className="w-20 h-2.5 bg-[#F5EBDD] rounded" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 sm:px-6"><div className="w-16 h-5 bg-[#F5EBDD] rounded" /></td>
+                      <td className="py-3.5 px-4 sm:px-6"><div className="w-20 h-4 bg-[#F5EBDD] rounded" /></td>
+                      <td className="py-3.5 px-4 sm:px-6"><div className="w-24 h-4 bg-[#F5EBDD] rounded" /></td>
+                      <td className="py-3.5 px-4 sm:px-6"><div className="w-16 h-5 bg-[#F5EBDD] rounded-full" /></td>
+                      <td className="py-3.5 px-4 sm:px-6 text-right"><div className="w-16 h-6 bg-[#F5EBDD] rounded ml-auto" /></td>
+                    </tr>
+                  ))}
+                </>
+              )}
+
+              {!isLoadingProducts && filteredProducts.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#786D63]">
                     No designs match your filters. Try clearing the search or category filter.
@@ -614,6 +760,12 @@ export default function AdminProducts() {
 
                     {/* Primary Image Preview (Compact fitted height) */}
                     <div className="w-full h-48 sm:h-52 rounded-xl overflow-hidden bg-[#F5EBDD] border border-[#D8B36A]/40 relative group flex items-center justify-center">
+                      {isUploadingImage && (
+                        <div className="absolute inset-0 bg-white/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center gap-2">
+                          <Loader2 size={24} className="text-[#C4933D] animate-spin" />
+                          <span className="text-xs font-semibold text-[#30231F]">Uploading to Supabase Storage...</span>
+                        </div>
+                      )}
                       {formData.images?.[0] ? (
                         <img
                           src={formData.images[0]}
@@ -656,11 +808,16 @@ export default function AdminProducts() {
                     {/* Upload Controls */}
                     <div className="space-y-2 pt-1">
                       <label className="inline-flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-[#F5EBDD] hover:bg-[#D8B36A]/30 text-xs text-[#30231F] font-semibold cursor-pointer transition-colors border border-[#D8B36A]/40">
-                        <UploadCloud size={15} className="text-[#C4933D]" />
-                        <span>Upload Photo from Computer</span>
+                        {isUploadingImage ? (
+                          <Loader2 size={15} className="text-[#C4933D] animate-spin" />
+                        ) : (
+                          <UploadCloud size={15} className="text-[#C4933D]" />
+                        )}
+                        <span>{isUploadingImage ? 'Uploading to Supabase Storage...' : 'Upload Photo to Supabase'}</span>
                         <input
                           type="file"
                           accept="image/*"
+                          disabled={isUploadingImage}
                           className="hidden"
                           onChange={handleFileUpload}
                         />
@@ -692,15 +849,18 @@ export default function AdminProducts() {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="px-5 py-2 rounded-lg text-sm font-semibold text-[#786D63] hover:text-[#30231F] hover:bg-[#F5EBDD] transition-colors cursor-pointer"
+                  disabled={isSubmitting}
+                  className="px-5 py-2 rounded-lg text-sm font-semibold text-[#786D63] hover:text-[#30231F] hover:bg-[#F5EBDD] transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-[#351016] hover:bg-[#45151D] border border-[#C4933D]/40 transition-all shadow-md cursor-pointer"
+                  disabled={isSubmitting || isUploadingImage}
+                  className="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-semibold text-white bg-[#351016] hover:bg-[#45151D] border border-[#C4933D]/40 transition-all shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {editingProduct ? 'Update Design' : 'Save Design'}
+                  {isSubmitting && <Loader2 size={15} className="animate-spin text-[#D8B36A]" />}
+                  <span>{isSubmitting ? 'Saving to Supabase...' : (editingProduct ? 'Update Design' : 'Save Design')}</span>
                 </button>
               </div>
             </form>
