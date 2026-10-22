@@ -126,7 +126,7 @@ export async function uploadJewelleryImage(file, folder = 'products') {
     .from(STORAGE_BUCKET)
     .upload(uniquePath, file, {
       cacheControl: '3600',
-      upsert: false,
+      upsert: true,
     })
 
   if (error) {
@@ -167,7 +167,7 @@ export async function insertProductToSupabase(product) {
   const row = mapProductToRow(product)
   const { data, error } = await supabase
     .from('products')
-    .insert([row])
+    .upsert(row, { onConflict: 'id' })
     .select()
     .single()
 
@@ -271,7 +271,7 @@ export async function insertCategoryToSupabase(category) {
   const row = mapCategoryToRow(category)
   const { data, error } = await supabase
     .from('categories')
-    .insert([row])
+    .upsert(row, { onConflict: 'slug' })
     .select()
     .single()
 

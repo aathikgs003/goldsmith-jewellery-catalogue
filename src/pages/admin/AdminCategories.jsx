@@ -245,6 +245,22 @@ export default function AdminCategories() {
         </div>
       )}
 
+      {/* Supabase Not Configured Notice */}
+      {!isSupabaseConfigured && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-3 text-xs shadow-xs">
+          <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-1">
+            <p className="font-semibold text-amber-950">Vercel Deployment Notice: Supabase Not Connected</p>
+            <p className="text-amber-800 leading-relaxed text-[11.5px]">
+              Categories and images added now will only stay in this single browser's temporary storage and will <strong>not sync to mobile phones or other devices</strong>.
+            </p>
+            <p className="text-amber-900 font-medium text-[11.5px] pt-0.5">
+              To sync live across all devices: add <code className="bg-amber-200/80 px-1 py-0.5 rounded font-mono text-[11px]">VITE_SUPABASE_URL</code> and <code className="bg-amber-200/80 px-1 py-0.5 rounded font-mono text-[11px]">VITE_SUPABASE_ANON_KEY</code> in <strong>Vercel &rarr; Settings &rarr; Environment Variables</strong>, then redeploy.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Screen 3: Categories Table Card */}
       <div className="bg-white rounded-xl border border-[#D8B36A]/40 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">

@@ -415,7 +415,7 @@ export function AdminProvider({ children }) {
 
   // ─── Category CRUD with Supabase Sync ───
   const addCategory = async (cat) => {
-    const slug = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const slug = (cat.slug || cat.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')
     const newCat = {
       id: slug,
       slug,
@@ -427,47 +427,74 @@ export function AdminProvider({ children }) {
       displayOrder: categories.length + 1,
     }
 
-    // Optimistic local update
-    setCategories((prev) => [...prev, newCat])
-
     if (isSupabaseConfigured) {
       try {
         const saved = await insertCategoryToSupabase(newCat)
-        if (saved) {
-          setCategories((prev) => prev.map((c) => (c.slug === slug ? saved : c)))
-          return saved
-        }
+        const finalCat = saved || newCat
+        setCategories((prev) => {
+          const filtered = prev.filter((c) => c.slug !== slug)
+          const next = [...filtered, finalCat]
+          localStorage.setItem('slgw_admin_categories', JSON.stringify(next))
+          return next
+        })
+        return finalCat
       } catch (err) {
         console.error('Supabase category insert failed:', err)
+        throw err
       }
+    } else {
+      setCategories((prev) => {
+        const filtered = prev.filter((c) => c.slug !== slug)
+        const next = [...filtered, newCat]
+        localStorage.setItem('slgw_admin_categories', JSON.stringify(next))
+        return next
+      })
+      return newCat
     }
-
-    return newCat
   }
 
   const updateCategory = async (slug, updatedFields) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.slug === slug ? { ...c, ...updatedFields } : c)),
-    )
-
     if (isSupabaseConfigured) {
       try {
-        await updateCategoryInSupabase(slug, updatedFields)
+        const saved = await updateCategoryInSupabase(slug, updatedFields)
+        setCategories((prev) => {
+          const next = prev.map((c) => (c.slug === slug ? { ...c, ...updatedFields } : c))
+          localStorage.setItem('slgw_admin_categories', JSON.stringify(next))
+          return next
+        })
+        return saved
       } catch (err) {
         console.error('Supabase category update failed:', err)
+        throw err
       }
+    } else {
+      setCategories((prev) => {
+        const next = prev.map((c) => (c.slug === slug ? { ...c, ...updatedFields } : c))
+        localStorage.setItem('slgw_admin_categories', JSON.stringify(next))
+        return next
+      })
     }
   }
 
   const deleteCategory = async (slug) => {
-    setCategories((prev) => prev.filter((c) => c.slug !== slug))
-
     if (isSupabaseConfigured) {
       try {
         await deleteCategoryFromSupabase(slug)
+        setCategories((prev) => {
+          const next = prev.filter((c) => c.slug !== slug)
+          localStorage.setItem('slgw_admin_categories', JSON.stringify(next))
+          return next
+        })
       } catch (err) {
         console.error('Supabase category delete failed:', err)
+        throw err
       }
+    } else {
+      setCategories((prev) => {
+        const next = prev.filter((c) => c.slug !== slug)
+        localStorage.setItem('slgw_admin_categories', JSON.stringify(next))
+        return next
+      })
     }
   }
 

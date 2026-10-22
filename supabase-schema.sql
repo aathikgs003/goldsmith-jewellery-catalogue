@@ -64,38 +64,40 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 -- 4. RLS POLICIES FOR CATEGORIES
 DROP POLICY IF EXISTS "Allow public read access on categories" ON public.categories;
 DROP POLICY IF EXISTS "Allow authenticated admin full access on categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow admin operations on categories" ON public.categories;
 
--- Anyone (visitors and customers) can view active/published categories
+-- Anyone can view active/published categories
 CREATE POLICY "Allow public read access on categories"
   ON public.categories
   FOR SELECT
   TO anon, authenticated
   USING (true);
 
--- Only authenticated admins can insert, update, or delete categories
-CREATE POLICY "Allow authenticated admin full access on categories"
+-- Allow catalogue management operations
+CREATE POLICY "Allow admin operations on categories"
   ON public.categories
   FOR ALL
-  TO authenticated
+  TO anon, authenticated
   USING (true)
   WITH CHECK (true);
 
 -- 5. RLS POLICIES FOR PRODUCTS
 DROP POLICY IF EXISTS "Allow public read published products" ON public.products;
 DROP POLICY IF EXISTS "Allow authenticated admin full access on products" ON public.products;
+DROP POLICY IF EXISTS "Allow admin operations on products" ON public.products;
 
--- Visitors can only read published products; authenticated admins can read all
+-- Visitors and customers can read published products; admin can read all
 CREATE POLICY "Allow public read published products"
   ON public.products
   FOR SELECT
   TO anon, authenticated
   USING (published = true OR auth.role() = 'authenticated');
 
--- Only authenticated admins can insert, update, or delete products
-CREATE POLICY "Allow authenticated admin full access on products"
+-- Allow catalogue management operations
+CREATE POLICY "Allow admin operations on products"
   ON public.products
   FOR ALL
-  TO authenticated
+  TO anon, authenticated
   USING (true)
   WITH CHECK (true);
 
@@ -107,7 +109,7 @@ VALUES (
   'jewellery-images',
   true,
   10485760, -- 10MB limit per image
-  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
 )
 ON CONFLICT (id) DO UPDATE SET public = true;
 
@@ -116,6 +118,9 @@ DROP POLICY IF EXISTS "Public can view jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated admins can upload jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated admins can update jewellery images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated admins can delete jewellery images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow upload jewellery images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow update jewellery images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow delete jewellery images" ON storage.objects;
 
 -- Allow public read access to jewellery-images bucket
 CREATE POLICY "Public can view jewellery images"
@@ -124,23 +129,23 @@ CREATE POLICY "Public can view jewellery images"
   TO anon, authenticated
   USING (bucket_id = 'jewellery-images');
 
--- Allow authenticated admin to upload images
-CREATE POLICY "Authenticated admins can upload jewellery images"
+-- Allow upload to jewellery-images bucket
+CREATE POLICY "Allow upload jewellery images"
   ON storage.objects
   FOR INSERT
-  TO authenticated
+  TO anon, authenticated
   WITH CHECK (bucket_id = 'jewellery-images');
 
--- Allow authenticated admin to update images
-CREATE POLICY "Authenticated admins can update jewellery images"
+-- Allow update in jewellery-images bucket
+CREATE POLICY "Allow update jewellery images"
   ON storage.objects
   FOR UPDATE
-  TO authenticated
+  TO anon, authenticated
   USING (bucket_id = 'jewellery-images');
 
--- Allow authenticated admin to delete images
-CREATE POLICY "Authenticated admins can delete jewellery images"
+-- Allow delete from jewellery-images bucket
+CREATE POLICY "Allow delete jewellery images"
   ON storage.objects
   FOR DELETE
-  TO authenticated
+  TO anon, authenticated
   USING (bucket_id = 'jewellery-images');
