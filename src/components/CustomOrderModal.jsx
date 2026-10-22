@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   X,
   Sparkles,
@@ -45,6 +45,14 @@ export default function CustomOrderModal({ isOpen, onClose, product }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedOrder, setSubmittedOrder] = useState(null)
   const [weightError, setWeightError] = useState('')
+
+  useEffect(() => {
+    if (isOpen && product) {
+      setRequestedWeight(baseWeightNum)
+      setSubmittedOrder(null)
+      setWeightError('')
+    }
+  }, [isOpen, product, baseWeightNum])
 
   if (!isOpen || !product) return null
 
@@ -116,7 +124,10 @@ export default function CustomOrderModal({ isOpen, onClose, product }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+    <div
+      className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-[#D8B36A]/50 overflow-hidden my-6 transition-all"
         onClick={(e) => e.stopPropagation()}

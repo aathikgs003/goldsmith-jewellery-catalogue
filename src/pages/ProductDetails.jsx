@@ -363,6 +363,13 @@ export default function ProductDetails() {
         </section>
       )}
 
+      {/* Custom Order / Store Consultation Modal */}
+      <CustomOrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        product={product}
+      />
+
       {/* Lightbox Modals */}
       {lightboxOpen && (
         <ProductLightbox
