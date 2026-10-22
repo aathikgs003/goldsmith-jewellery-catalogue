@@ -91,32 +91,39 @@ CREATE INDEX IF NOT EXISTS idx_products_published ON public.products (published)
 -- 3. ORDERS & CUSTOM CONSULTATIONS TABLE
 CREATE TABLE IF NOT EXISTS public.orders (
   id TEXT PRIMARY KEY,
-  customer_name TEXT NOT NULL,
-  contact TEXT NOT NULL,
+  customer_name TEXT,
+  name TEXT,
+  contact TEXT,
   email TEXT,
-  design_name TEXT NOT NULL,
+  design_name TEXT,
+  design TEXT,
   design_id TEXT,
   category TEXT,
   requested_weight TEXT,
   base_weight TEXT,
   consultation_type TEXT,
   notes TEXT,
+  message TEXT,
   image TEXT,
   status TEXT DEFAULT 'Order Received',
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Ensure all column variations exist smoothly
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS name TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS contact TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS design_name TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS design TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS design_id TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS category TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS requested_weight TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS base_weight TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS consultation_type TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS message TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS image TEXT;
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Order Received';
 ALTER TABLE IF EXISTS public.orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
@@ -131,11 +138,28 @@ DROP POLICY IF EXISTS "Allow all orders read" ON public.orders;
 DROP POLICY IF EXISTS "Allow all orders insert" ON public.orders;
 DROP POLICY IF EXISTS "Allow all orders update" ON public.orders;
 DROP POLICY IF EXISTS "Allow all orders delete" ON public.orders;
+DROP POLICY IF EXISTS "Allow public order insertion" ON public.orders;
+DROP POLICY IF EXISTS "Allow read orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow update order status" ON public.orders;
+DROP POLICY IF EXISTS "Allow delete orders" ON public.orders;
 
 CREATE POLICY "Allow all orders read" ON public.orders FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "Allow all orders insert" ON public.orders FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Allow all orders update" ON public.orders FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all orders delete" ON public.orders FOR DELETE TO anon, authenticated USING (true);
+
+-- Safely add to Realtime publication only if not already added
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'orders'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+  END IF;
+END $$;
 
 -- 4. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;

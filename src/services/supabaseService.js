@@ -449,18 +449,25 @@ export function mapOrderFromRow(row) {
 }
 
 export function mapOrderToRow(order) {
+  const custName = order.name || order.customer_name || 'Customer'
+  const dName = order.design || order.designName || order.design_name || 'Custom Jewellery'
+  const noteText = order.message || order.notes || ''
+
   return {
-    id: order.id,
-    customer_name: order.name,
-    contact: order.contact,
+    id: String(order.id),
+    customer_name: custName,
+    name: custName,
+    contact: String(order.contact || ''),
     email: order.email || '',
-    design_name: order.design || order.designName || 'Custom Jewellery',
-    design_id: order.designId || '',
+    design_name: dName,
+    design: dName,
+    design_id: order.designId || order.design_id || '',
     category: order.category || '',
-    requested_weight: order.requestedWeight || '',
-    base_weight: order.baseWeight || '',
-    consultation_type: order.consultationType || 'In-Store Showroom Consultation',
-    notes: order.message || order.notes || '',
+    requested_weight: order.requestedWeight || order.requested_weight || '',
+    base_weight: order.baseWeight || order.base_weight || '',
+    consultation_type: order.consultationType || order.consultation_type || 'In-Store Showroom Consultation',
+    notes: noteText,
+    message: noteText,
     image: order.image || '',
     status: order.status || 'Order Received',
     created_at: order.createdAt || new Date().toISOString(),
