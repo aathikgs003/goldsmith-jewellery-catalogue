@@ -63,7 +63,14 @@ const PAGE_SIZE = 8
 
 export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const adminCtx = useAdmin()
-  const categories = adminCtx?.categories || initialCategories
+  const rawCategories = adminCtx?.categories || initialCategories
+  const categories = useMemo(() => {
+    return rawCategories.filter(
+      (c) =>
+        String(c.slug || '').toLowerCase() !== 'dummy' &&
+        String(c.name || '').toLowerCase() !== 'dummy'
+    )
+  }, [rawCategories])
   const products = adminCtx?.products || initialProducts
 
   const navigate = useNavigate()

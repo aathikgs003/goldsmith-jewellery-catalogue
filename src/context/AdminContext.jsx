@@ -277,13 +277,32 @@ export function AdminProvider({ children }) {
     }
   }
 
+  // Helper to filter out test/dummy entries
+  const isDummyCategory = (c) => {
+    if (!c) return true
+    const s = String(c.slug || '').toLowerCase().trim()
+    const n = String(c.name || '').toLowerCase().trim()
+    const id = String(c.id || '').toLowerCase().trim()
+    return s === 'dummy' || n === 'dummy' || id === 'dummy'
+  }
+
   // ─── 2. Categories State & Remote Sync ───
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('slgw_admin_categories')
-      return saved ? JSON.parse(saved) : initialCategories
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter((c) => !isDummyCategory(c))
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem('slgw_admin_categories', JSON.stringify(cleaned))
+          }
+          return cleaned
+        }
+      }
+      return initialCategories.filter((c) => !isDummyCategory(c))
     } catch {
-      return initialCategories
+      return initialCategories.filter((c) => !isDummyCategory(c))
     }
   })
   const [isLoadingCategories, setIsLoadingCategories] = useState(isSupabaseConfigured)
@@ -329,8 +348,15 @@ export function AdminProvider({ children }) {
 
       // Handle categories
       if (Array.isArray(remoteCats) && remoteCats.length > 0) {
-        setCategories(remoteCats)
-        localStorage.setItem('slgw_admin_categories', JSON.stringify(remoteCats))
+        const cleanedCats = remoteCats.filter((c) => !isDummyCategory(c))
+        setCategories(cleanedCats)
+        localStorage.setItem('slgw_admin_categories', JSON.stringify(cleanedCats))
+
+        // If remote database contains dummy category, clean it up
+        const dummyRemote = remoteCats.filter((c) => isDummyCategory(c))
+        for (const d of dummyRemote) {
+          deleteCategoryFromSupabase(d.slug || d.id).catch(() => {})
+        }
       }
 
       // Handle products

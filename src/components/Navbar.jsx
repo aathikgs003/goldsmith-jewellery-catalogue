@@ -27,7 +27,12 @@ const NAV_LINKS = [
 export default function Navbar() {
   const adminCtx = useAdmin()
   const rawCategories = adminCtx?.categories || initialCategories
-  const categories = rawCategories.filter((c) => (c.status ? c.status === 'Active' : true))
+  const categories = rawCategories.filter(
+    (c) =>
+      (c.status ? c.status === 'Active' : true) &&
+      String(c.slug || '').toLowerCase() !== 'dummy' &&
+      String(c.name || '').toLowerCase() !== 'dummy'
+  )
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)

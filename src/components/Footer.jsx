@@ -8,10 +8,16 @@ import BrandLogo from './BrandLogo'
 
 export default function Footer() {
   const adminCtx = useAdmin()
-  const displayCategories =
+  const rawList =
     adminCtx?.categories && adminCtx.categories.length > 0
-      ? adminCtx.categories.filter((c) => c.status !== 'Inactive')
+      ? adminCtx.categories
       : defaultCategories
+  const displayCategories = rawList.filter(
+    (c) =>
+      c.status !== 'Inactive' &&
+      String(c.slug || '').toLowerCase() !== 'dummy' &&
+      String(c.name || '').toLowerCase() !== 'dummy'
+  )
   return (
     <footer className="bg-[#351016] text-[#FFFCF7] border-t border-[#45151D] relative overflow-hidden">
       {/* Subtle Ornamental Mandala Watermark in Footer Corner */}

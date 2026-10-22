@@ -37,10 +37,14 @@ const GOOGLE_MAPS_DIRECTIONS_URL =
 
 export default function Home() {
   const { websiteContent, categories: adminCategories } = useAdmin()
-  const displayCategories =
-    adminCategories && adminCategories.length > 0
-      ? adminCategories.filter((c) => c.status !== 'Inactive')
-      : defaultCategories
+  const rawCategories =
+    adminCategories && adminCategories.length > 0 ? adminCategories : defaultCategories
+  const displayCategories = rawCategories.filter(
+    (c) =>
+      c.status !== 'Inactive' &&
+      String(c.slug || '').toLowerCase() !== 'dummy' &&
+      String(c.name || '').toLowerCase() !== 'dummy'
+  )
   const heroData = websiteContent?.hero || {
     eyebrow: 'TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY',
     title: 'Jewellery That Tells Your Story',
