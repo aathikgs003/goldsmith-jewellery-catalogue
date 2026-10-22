@@ -14,6 +14,7 @@ import {
   MessageCircle,
   ExternalLink,
   Filter,
+  RefreshCw,
 } from 'lucide-react'
 import { useAdmin } from '../../context/AdminContext'
 
@@ -25,10 +26,11 @@ const ORDER_STAGES = [
 ]
 
 export default function AdminEnquiries() {
-  const { enquiries, updateOrderStatus, updateEnquiryStatus, deleteEnquiry } = useAdmin()
+  const { enquiries, updateOrderStatus, updateEnquiryStatus, deleteEnquiry, refreshData, isSyncing } = useAdmin()
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [successToast, setSuccessToast] = useState('')
+  const [isManualSyncing, setIsManualSyncing] = useState(false)
 
   const updateStatus = updateOrderStatus || updateEnquiryStatus
 
@@ -166,12 +168,33 @@ export default function AdminEnquiries() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1
-            className="text-2xl sm:text-3xl font-bold text-[#30231F]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Customer Orders &amp; Enquiries
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1
+              className="text-2xl sm:text-3xl font-bold text-[#30231F]"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Customer Orders &amp; Enquiries
+            </h1>
+            <button
+              onClick={async () => {
+                setIsManualSyncing(true)
+                try {
+                  await refreshData()
+                  showToast('Orders refreshed & synced with cloud!')
+                } catch {
+                  showToast('Sync finished.')
+                } finally {
+                  setIsManualSyncing(false)
+                }
+              }}
+              disabled={isManualSyncing || isSyncing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#30231F] border border-[#D8B36A]/50 rounded-xl text-xs font-semibold shadow-xs hover:bg-[#F5EBDD] transition-colors cursor-pointer"
+              title="Sync orders across all devices and browsers"
+            >
+              <RefreshCw size={12} className={isManualSyncing || isSyncing ? 'animate-spin text-[#C4933D]' : 'text-[#C4933D]'} />
+              <span>{isManualSyncing || isSyncing ? 'Syncing...' : 'Sync Cloud'}</span>
+            </button>
+          </div>
           <p className="text-xs sm:text-sm text-[#786D63] mt-1">
             Manage custom jewellery orders, weight requirements, and advance status from Received &rarr; Confirmed &rarr; Processing &rarr; Handed Over.
           </p>

@@ -425,10 +425,38 @@ export function AdminProvider({ children }) {
           localStorage.setItem('slgw_admin_products', JSON.stringify(remoteProds))
         }
       }
-      // Handle orders
-      if (Array.isArray(remoteOrders) && remoteOrders.length > 0) {
-        setEnquiries(remoteOrders)
-        localStorage.setItem('slgw_admin_enquiries', JSON.stringify(remoteOrders))
+      // Handle orders cross-device sync
+      if (Array.isArray(remoteOrders)) {
+        let localOrders = []
+        try {
+          localOrders = JSON.parse(localStorage.getItem('slgw_admin_enquiries') || '[]')
+        } catch (_) {}
+
+        const remoteIdSet = new Set(remoteOrders.map((o) => o.id))
+
+        // Find orders created locally on this device that are not yet in Supabase
+        const unsyncedOrders = localOrders.filter(
+          (o) => o && o.id && !remoteIdSet.has(o.id) && !o.id.startsWith('ENQ-00')
+        )
+
+        // Upload unsynced orders to Supabase so other devices can see them immediately!
+        if (unsyncedOrders.length > 0) {
+          console.info(`Syncing ${unsyncedOrders.length} local orders to Supabase...`)
+          for (const unsynced of unsyncedOrders) {
+            try {
+              const saved = await insertOrderToSupabase(unsynced)
+              remoteOrders.unshift(saved || unsynced)
+              remoteIdSet.add(unsynced.id)
+            } catch (err) {
+              console.warn('Could not sync local order to Supabase:', err.message)
+            }
+          }
+        }
+
+        if (remoteOrders.length > 0) {
+          setEnquiries(remoteOrders)
+          localStorage.setItem('slgw_admin_enquiries', JSON.stringify(remoteOrders))
+        }
       }
 
       if (Array.isArray(remoteProds) && remoteProds.length === 0 && autoSeedIfEmpty) {
@@ -757,16 +785,27 @@ export function AdminProvider({ children }) {
       try {
         const saved = await insertOrderToSupabase(newOrder)
         const finalOrder = saved || newOrder
-        setEnquiries((prev) => [finalOrder, ...prev.filter((o) => o.id !== finalOrder.id)])
-        localStorage.setItem('slgw_admin_enquiries', JSON.stringify([finalOrder, ...enquiries.filter((o) => o.id !== finalOrder.id)]))
+        setEnquiries((prev) => {
+          const next = [finalOrder, ...prev.filter((o) => o.id !== finalOrder.id)]
+          localStorage.setItem('slgw_admin_enquiries', JSON.stringify(next))
+          return next
+        })
         return finalOrder
       } catch (err) {
-        console.error('Supabase order insert failed:', err)
-        setEnquiries((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
+        console.error('Supabase order insert failed (saving locally):', err)
+        setEnquiries((prev) => {
+          const next = [newOrder, ...prev.filter((o) => o.id !== newOrder.id)]
+          localStorage.setItem('slgw_admin_enquiries', JSON.stringify(next))
+          return next
+        })
         return newOrder
       }
     } else {
-      setEnquiries((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
+      setEnquiries((prev) => {
+        const next = [newOrder, ...prev.filter((o) => o.id !== newOrder.id)]
+        localStorage.setItem('slgw_admin_enquiries', JSON.stringify(next))
+        return next
+      })
       return newOrder
     }
   }
