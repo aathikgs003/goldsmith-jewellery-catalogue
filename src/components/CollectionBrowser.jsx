@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -12,6 +12,7 @@ import {
   Gem,
   ShieldCheck,
   SlidersHorizontal,
+  GalleryHorizontal,
 } from 'lucide-react'
 import ProductCard from './ProductCard'
 import ProductLightbox from './ProductLightbox'
@@ -81,9 +82,37 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const [selectedWeight, setSelectedWeight] = useState('all')
   const [selectedAvailability, setSelectedAvailability] = useState('all')
   const [sortBy, setSortBy] = useState('featured')
-  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
+  const [viewMode, setViewMode] = useState('scroll') // 'scroll' | 'grid' | 'list'
   const [currentPage, setCurrentPage] = useState(1)
   const [lightboxProduct, setLightboxProduct] = useState(null)
+
+  // Ref & scroll handler for horizontal products view
+  const productsScrollRef = useRef(null)
+  const [canScrollProductsLeft, setCanScrollProductsLeft] = useState(false)
+  const [canScrollProductsRight, setCanScrollProductsRight] = useState(true)
+  const [productScrollProgress, setProductScrollProgress] = useState(0)
+
+  const checkProductsScroll = () => {
+    if (productsScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = productsScrollRef.current
+      setCanScrollProductsLeft(scrollLeft > 10)
+      setCanScrollProductsRight(scrollLeft < scrollWidth - clientWidth - 10)
+      const maxScroll = scrollWidth - clientWidth
+      if (maxScroll > 0) {
+        setProductScrollProgress(Math.min(1, Math.max(0, scrollLeft / maxScroll)))
+      }
+    }
+  }
+
+  const scrollProducts = (direction) => {
+    if (productsScrollRef.current) {
+      const scrollAmount = productsScrollRef.current.clientWidth * 0.75
+      productsScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
 
   // Accordion toggle states in sidebar
   const [styleExpanded, setStyleExpanded] = useState(true)
@@ -233,6 +262,12 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
   const closeLightbox = () => {
     setLightboxProduct(null)
   }
+
+  useEffect(() => {
+    checkProductsScroll()
+    window.addEventListener('resize', checkProductsScroll)
+    return () => window.removeEventListener('resize', checkProductsScroll)
+  }, [filteredProducts, viewMode])
 
   return (
     <div className="bg-[#FFFCF7] text-[#30231F] min-h-screen">
@@ -519,6 +554,18 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
             {/* View Mode Toggle Icons */}
             <div className="flex items-center border border-[#D8B36A]/40 rounded-xl overflow-hidden bg-[#FFFCF7]">
               <button
+                onClick={() => setViewMode('scroll')}
+                aria-label="Horizontal Scroll View"
+                title="Horizontal Scroll View"
+                className={`p-1.5 transition-colors cursor-pointer ${
+                  viewMode === 'scroll'
+                    ? 'bg-[#C4933D] text-white'
+                    : 'text-[#786D63] hover:text-[#30231F]'
+                }`}
+              >
+                <GalleryHorizontal size={15} />
+              </button>
+              <button
                 onClick={() => setViewMode('grid')}
                 aria-label="Grid View"
                 className={`p-1.5 transition-colors ${
@@ -727,6 +774,32 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
                 {currentCategory.name.toLowerCase()} design
                 {filteredProducts.length !== 1 ? 's' : ''}
               </p>
+
+              {viewMode === 'scroll' && filteredProducts.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-[#786D63] font-medium hidden sm:inline">
+                    Scroll to explore
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => scrollProducts('left')}
+                      disabled={!canScrollProductsLeft}
+                      aria-label="Previous designs"
+                      className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => scrollProducts('right')}
+                      disabled={!canScrollProductsRight}
+                      aria-label="Next designs"
+                      className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#D8B36A]/40 flex items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Product Grid / Empty State */}
@@ -751,7 +824,88 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
                   <span>Reset All Filters</span>
                 </button>
               </div>
+            ) : viewMode === 'scroll' ? (
+              /* ─── Horizontal Scroll View ─── */
+              <div className="space-y-4">
+                <div className="relative group/products-slider">
+                  {/* Floating Left Arrow */}
+                  <button
+                    onClick={() => scrollProducts('left')}
+                    disabled={!canScrollProductsLeft}
+                    aria-label="Previous designs"
+                    className={`flex absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] transition-all duration-200 cursor-pointer ${
+                      canScrollProductsLeft ? 'opacity-100 scale-100' : 'opacity-0 pointer-events-none scale-90'
+                    }`}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  {/* Single Horizontal Line Cards Strip */}
+                  <div
+                    ref={productsScrollRef}
+                    onScroll={checkProductsScroll}
+                    className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2 px-1 -mx-1"
+                    style={{ WebkitOverflowScrolling: 'touch' }}
+                  >
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="w-[230px] sm:w-[250px] md:w-[270px] shrink-0 snap-start flex flex-col"
+                      >
+                        <ProductCard
+                          product={product}
+                          isFav={isFav(product.id)}
+                          onToggleFav={toggleFav}
+                          onOpenLightbox={() => openLightbox(product)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Floating Right Arrow */}
+                  <button
+                    onClick={() => scrollProducts('right')}
+                    disabled={!canScrollProductsRight}
+                    aria-label="Next designs"
+                    className={`flex absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white shadow-md border border-[#D8B36A]/40 items-center justify-center text-[#30231F] hover:text-[#C4933D] hover:border-[#C4933D] transition-all duration-200 cursor-pointer ${
+                      canScrollProductsRight ? 'opacity-100 scale-100' : 'opacity-0 pointer-events-none scale-90'
+                    }`}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+
+                {/* Interactive Scroll Progress Dots */}
+                {filteredProducts.length > 3 && (
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    {[0, 1, 2, 3].map((dot) => {
+                      const isActive = Math.round(productScrollProgress * 3) === dot
+                      return (
+                        <button
+                          key={dot}
+                          onClick={() => {
+                            if (productsScrollRef.current) {
+                              const maxScroll = productsScrollRef.current.scrollWidth - productsScrollRef.current.clientWidth
+                              productsScrollRef.current.scrollTo({
+                                left: (dot / 3) * maxScroll,
+                                behavior: 'smooth',
+                              })
+                            }
+                          }}
+                          aria-label={`Scroll to section ${dot + 1}`}
+                          className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                            isActive
+                              ? 'w-6 bg-[#C4933D]'
+                              : 'w-2 bg-[#D8B36A]/40 hover:bg-[#C4933D]/60'
+                          }`}
+                        />
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             ) : (
+              /* ─── Grid / List View ─── */
               <div
                 className={
                   viewMode === 'grid'
@@ -772,7 +926,7 @@ export default function CollectionBrowser({ initialCategorySlug = 'bangles' }) {
             )}
 
             {/* ─── Pagination Row (Matching Screenshot: < 1 2 3 4 >) ─── */}
-            {totalPages > 1 && (
+            {viewMode !== 'scroll' && totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 pt-6">
                 {/* Prev Button */}
                 <button

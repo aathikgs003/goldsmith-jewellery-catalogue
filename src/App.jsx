@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+﻿import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -49,7 +49,7 @@ function AppShell() {
       {!isAnyAdmin && <Navbar />}
       <main
         className={`flex-1 ${
-          isAdminDashboard ? 'h-full overflow-hidden flex flex-col' : ''
+          isAdminDashboard ? 'h-full overflow-hidden flex flex-col' : 'flex flex-col'
         }`}
       >
         <Routes>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -12,8 +12,6 @@ import {
   MapPin,
   Maximize2,
   Award,
-  HeartHandshake,
-  PenTool,
 } from 'lucide-react'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
@@ -24,10 +22,10 @@ import { useFeaturedProducts, useFavourites } from '../hooks/useProducts'
 import { siteConfig } from '../config/siteConfig'
 import { useAdmin } from '../context/AdminContext'
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GOOGLE MAPS CONFIGURATION (Visit Our Store Section)
 // To update your store map, paste your Google Maps embed iframe `src` URL below:
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const GOOGLE_MAPS_EMBED_URL =
   'https://www.google.com/maps/embed?pb=!4v1792646509938!6m8!1m7!1sbRXXEEC6nrql_-YILECMuA!2m2!1d8.883108247201784!2d77.38855234125623!3f92.68559314648843!4f-12.973021813108176!5f0.7820865974627469'
 
@@ -44,7 +42,7 @@ export default function Home() {
       c.status !== 'Inactive'
   )
   const heroData = websiteContent?.hero || {
-    eyebrow: 'TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY',
+    eyebrow: 'TRADITION Ã— CRAFTSMANSHIP Ã— TIMELESS BEAUTY',
     title: 'Jewellery That Tells Your Story',
     subtitle:
       'Explore our exclusive collection of traditional and contemporary gold jewellery designs for every occasion.',
@@ -52,31 +50,9 @@ export default function Home() {
     secondaryButton: 'Contact Us',
     image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85',
   }
-  const newArrivalsBanner = websiteContent?.homeNewArrivals || {
-    eyebrow: 'NEW ARRIVALS',
-    title: 'Latest Designs for Every Occasion',
-    subtitle: 'From daily wear to grand celebrations, find the perfect jewellery to match your style.',
-    buttonText: 'Explore New Arrivals',
-    image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=1000&q=80',
-  }
-  const customBanner = websiteContent?.homeCustom || {
-    eyebrow: 'Bring Your Ideas to Life',
-    title: 'Custom Jewellery Designs',
-    subtitle: 'Have a design in mind? Let us create it for you with expert craftsmanship and attention to detail.',
-    buttonText: 'Request a Custom Design',
-    image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1000&q=80',
-  }
-  const craftBanner = websiteContent?.homeCraft || {
-    eyebrow: 'OUR CRAFTSMANSHIP',
-    title: 'Tradition in Every Detail',
-    subtitle: 'Each piece is crafted with care, skill and a deep respect for our rich heritage. We focus on quality, detail and timeless designs.',
-    buttonText: 'Know More About Us',
-    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000&q=80',
-  }
   const featuredProducts = useFeaturedProducts(8)
   const [lightboxProduct, setLightboxProduct] = useState(null)
   const [lightboxPool, setLightboxPool] = useState([])
-  const [heroSlide, setHeroSlide] = useState(0)
   const { isFav, toggle } = useFavourites()
 
   const openLightbox = (product, pool) => {
@@ -154,9 +130,9 @@ export default function Home() {
 
   return (
     <div className="bg-[#FFFCF7] text-[#30231F]">
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 1. HERO SECTION (Editorial Bridal Split Banner) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative min-h-[580px] lg:min-h-[660px] flex items-center bg-[#1A110D] text-white overflow-hidden">
         {/* Background Radial Lighting for Text Legibility */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#1A110D] via-[#1A110D]/90 to-transparent z-10" />
@@ -176,7 +152,7 @@ export default function Home() {
         {/* Hero Content */}
         <div className="relative z-20 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-16 sm:py-24 w-full">
           <div className="max-w-xl space-y-6">
-            {/* Sub-eyebrow: TRADITION × CRAFTSMANSHIP × TIMELESS BEAUTY */}
+            {/* Sub-eyebrow: TRADITION Ã— CRAFTSMANSHIP Ã— TIMELESS BEAUTY */}
             <div className="flex items-center gap-2.5 text-[10.5px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[#D8B36A]">
               <span>TRADITION</span>
               <span className="text-[#C4933D] font-normal">&times;</span>
@@ -264,40 +240,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Floating Carousel Navigation Pill in Bottom Right Corner */}
-        <div className="hidden sm:flex absolute bottom-6 right-6 lg:bottom-10 lg:right-12 z-20 items-center gap-2 bg-black/50 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full text-white/80 shadow-lg">
-          <button
-            onClick={() => setHeroSlide((s) => (s === 0 ? 1 : 0))}
-            aria-label="Previous banner"
-            className="hover:text-white transition-colors"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <div className="flex items-center gap-1.5 px-1">
-            <span
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                heroSlide === 0 ? 'bg-white w-2' : 'bg-white/40'
-              }`}
-            />
-            <span
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                heroSlide === 1 ? 'bg-white w-2' : 'bg-white/40'
-              }`}
-            />
-          </div>
-          <button
-            onClick={() => setHeroSlide((s) => (s === 0 ? 1 : 0))}
-            aria-label="Next banner"
-            className="hover:text-white transition-colors"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 2. SHOP BY CATEGORY SECTION (Single-Line Horizontal Scroll) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-16 sm:py-20 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-10 gap-3">
           <div className="flex items-center gap-3">
@@ -385,9 +332,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 3. FEATURED DESIGNS SECTION (Single-Line Horizontal Scroll) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-16 sm:py-20 bg-[#F5EBDD]/60 border-y border-[#D8B36A]/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-3">
@@ -510,202 +457,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 4. LATEST DESIGNS FOR EVERY OCCASION (Deep Burgundy Banner #351016) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#351016] text-white relative overflow-hidden py-14 lg:py-18 border-b border-[#45151D]">
-        {/* Subtle Ornamental Mandala Watermark in Background */}
-        <div className="absolute right-0 bottom-0 w-96 h-96 opacity-10 pointer-events-none">
-          <svg viewBox="0 0 200 200" fill="none" className="w-full h-full stroke-[#C4933D]">
-            <circle cx="100" cy="100" r="80" strokeWidth="1" />
-            <circle cx="100" cy="100" r="60" strokeWidth="0.8" strokeDasharray="3 3" />
-            <circle cx="100" cy="100" r="40" strokeWidth="1" />
-            <path d="M100 20 C120 70 180 100 180 100 C180 100 120 130 100 180 C80 130 20 100 20 100 C20 100 80 70 100 20 Z" strokeWidth="1" />
-          </svg>
-        </div>
-
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-            {/* Left Image: Heavy Gold Waist Belt / Necklace on Dark Wood */}
-            <div className="lg:col-span-5 relative">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#C4933D]/30 shadow-2xl bg-[#240B12]">
-                <img
-                  src={newArrivalsBanner.image}
-                  alt={newArrivalsBanner.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* Right Text */}
-            <div className="lg:col-span-7 space-y-4">
-              <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-semibold text-[#D8B36A]">
-                {newArrivalsBanner.eyebrow}
-              </span>
-
-              <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-white tracking-tight"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                {newArrivalsBanner.title}
-              </h2>
-
-              <p className="text-sm sm:text-base text-[#F5EBDD]/80 font-light max-w-lg leading-relaxed">
-                {newArrivalsBanner.subtitle}
-              </p>
-
-              <div className="pt-2">
-                <Link
-                  to="/new-arrivals"
-                  className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
-                >
-                  <span>{newArrivalsBanner.buttonText}</span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 5. CUSTOM JEWELLERY DESIGNS (Bespoke Warm Champagne Section) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#F5EBDD] relative overflow-hidden py-14 lg:py-18 border-b border-[#D8B36A]/40">
-        {/* Subtle Corner Floral Watermark */}
-        <div className="absolute left-0 bottom-0 w-64 h-64 opacity-20 pointer-events-none">
-          <svg viewBox="0 0 100 100" fill="none" className="w-full h-full stroke-[#C4933D]">
-            <circle cx="20" cy="80" r="50" strokeWidth="0.8" />
-            <circle cx="20" cy="80" r="30" strokeWidth="0.5" strokeDasharray="2 2" />
-          </svg>
-        </div>
-
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-7 space-y-4">
-              <span className="text-[11px] sm:text-xs font-semibold text-[#C4933D] tracking-wider block">
-                {customBanner.eyebrow}
-              </span>
-
-              <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#30231F] tracking-tight"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                {customBanner.title}
-              </h2>
-
-              <p className="text-sm sm:text-base text-[#786D63] font-light max-w-lg leading-relaxed">
-                {customBanner.subtitle}
-              </p>
-
-              <div className="pt-2">
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
-                >
-                  <span>
-                    {customBanner.buttonText && customBanner.buttonText !== 'Start Custom Design on WhatsApp'
-                      ? customBanner.buttonText
-                      : 'Request Custom Design'}
-                  </span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Image: Goldsmith Drafting Real Gold Jewellery on Desk */}
-            <div className="lg:col-span-5 relative">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#D8B36A]/40 shadow-xl bg-white">
-                <img
-                  src={customBanner.image}
-                  alt={customBanner.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* 6. TRADITION IN EVERY DETAIL (Craftsmanship Story Section) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#1A110D] text-white py-16 lg:py-20 border-b border-[#351016]">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-7 space-y-4">
-              <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-semibold text-[#D8B36A] block">
-                {craftBanner.eyebrow}
-              </span>
-
-              <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-white tracking-tight"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                {craftBanner.title}
-              </h2>
-
-              <p className="text-sm sm:text-base text-white/85 font-light max-w-xl leading-relaxed">
-                {craftBanner.subtitle}
-              </p>
-
-              <div className="pt-2">
-                <Link
-                  to="/about"
-                  className="inline-flex items-center gap-2 bg-[#C4933D] hover:bg-[#B3832F] text-white font-semibold text-xs uppercase tracking-wider px-7 py-3.5 rounded-full transition-all shadow-md"
-                >
-                  <span>{craftBanner.buttonText}</span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-
-              {/* 3 Badges */}
-              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 text-center sm:text-left">
-                <div className="space-y-1.5">
-                  <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#D8B36A] mx-auto sm:mx-0">
-                    <PenTool size={16} />
-                  </div>
-                  <h4 className="text-xs font-semibold text-white">Skilled Craftsmanship</h4>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#D8B36A] mx-auto sm:mx-0">
-                    <Gem size={16} />
-                  </div>
-                  <h4 className="text-xs font-semibold text-white">Quality Materials</h4>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#D8B36A] mx-auto sm:mx-0">
-                    <HeartHandshake size={16} />
-                  </div>
-                  <h4 className="text-xs font-semibold text-white">Personalised Service</h4>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Image: Hands of Master Goldsmith with Fine Tools */}
-            <div className="lg:col-span-5 relative">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-[#251A16]">
-                <img
-                  src="https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=1000&q=80"
-                  alt="Goldsmith Shaping Temple Gold Ornament"
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 7. WHY CHOOSE LAKSHMANAN GOLD WORKS */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-16 sm:py-20 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 text-center">
         <div className="inline-flex items-center gap-3 justify-center mb-10 flex-wrap">
           <h2
@@ -765,9 +519,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 8. VISIT OUR STORE SECTION */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-16 sm:py-20 bg-[#F5EBDD]/60 border-t border-[#D8B36A]/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="text-center max-w-xl mx-auto mb-10 space-y-1">
@@ -940,9 +694,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* FULL SCREEN LIGHTBOX MODAL */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {lightboxProduct && (
         <ProductLightbox
           product={lightboxProduct}
